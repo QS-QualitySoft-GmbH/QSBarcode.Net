@@ -43,7 +43,7 @@ dotnet add package QualitySoft.Barcode
 Or add a `PackageReference` manually:
 
 ```xml
-<PackageReference Include="QualitySoft.Barcode" Version="0.1.4" />
+<PackageReference Include="QualitySoft.Barcode" Version="0.2.0" />
 ```
 
 Visual Studio Package Manager Console:
@@ -256,6 +256,31 @@ Console.WriteLine($"PDF417: {status.AllowsPdf417}");
 Console.WriteLine($"DataMatrix: {status.AllowsDataMatrix}");
 Console.WriteLine($"QR: {status.AllowsQr}");
 Console.WriteLine($"Aztec: {status.AllowsAztec}");
+```
+
+### Demo Mode
+
+`Demo` is not a production license tier. It is an evaluation mode used when no
+valid commercial feature license is active, or when a demo/evaluation license is
+used.
+
+A status such as `Demo, Linear` means that linear barcode detection is available
+for evaluation. It does not mean that the application has a production 1D
+license. In demo mode the native engine may still return barcode results, but
+decoded text is deliberately modified before it is returned:
+
+- linear, PDF417 and postal payloads use legacy character substitution
+- Data Matrix, QR Code and Aztec payloads additionally receive a `DEMO` marker
+
+Use `status.IsDemo` to keep demo/evaluation behavior out of production
+workflows. Production checks should require both the needed feature and
+`!status.IsDemo`.
+
+```csharp
+if (status.AllowsLinear && !status.IsDemo)
+{
+    Console.WriteLine("Production linear scanning is licensed.");
+}
 ```
 
 If an application requests only unlicensed symbologies, the native runtime
