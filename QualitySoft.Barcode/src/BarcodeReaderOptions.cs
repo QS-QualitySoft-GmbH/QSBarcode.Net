@@ -123,10 +123,44 @@ public sealed class BarcodeReaderOptions
     /// </summary>
     public Encoding? TextEncoding { get; set; }
 
+    /// <summary>
+    /// Creates a detached copy that can safely be used by asynchronous scans.
+    /// </summary>
+    public BarcodeReaderOptions Clone()
+    {
+        return new BarcodeReaderOptions
+        {
+            Symbologies = Symbologies,
+            MinLength = MinLength,
+            Flags = Flags,
+            PageStart = PageStart,
+            PageCount = PageCount,
+            Dpi = Dpi,
+            DataMatrixFinderAngleTolerance = DataMatrixFinderAngleTolerance,
+            DataMatrixOverlapPercent = DataMatrixOverlapPercent,
+            DataMatrixMaxLineCandidates = DataMatrixMaxLineCandidates,
+            Threshold = Threshold,
+            Orientation = Orientation,
+            MaxSkewDegrees = MaxSkewDegrees,
+            LightMargin = LightMargin,
+            ScanDistanceBarcode = ScanDistanceBarcode,
+            Tolerance = Tolerance,
+            MinHeight = MinHeight,
+            Percent = Percent,
+            ScanDistance = ScanDistance,
+            MaxGap = MaxGap,
+            MaxHeight = MaxHeight,
+            ChecksumFlags = ChecksumFlags,
+            TextEncoding = TextEncoding
+        };
+    }
+
     internal NativeScanOptions ToNative()
     {
+        Validate();
+
         var native = new NativeScanOptions();
-        var initStatus = NativeMethods.qsbc_loader_scan_options_init(ref native);
+        var initStatus = NativeMethods.Invoke(() => NativeMethods.qsbc_loader_scan_options_init(ref native));
         if (initStatus < 0)
         {
             throw new BarcodeScanException(initStatus, NativeMethods.PtrToString(NativeMethods.qsbc_loader_status_name(initStatus)));
@@ -156,5 +190,18 @@ public sealed class BarcodeReaderOptions
         native.ChecksumFlags = ChecksumFlags;
 
         return native;
+    }
+
+    internal void Validate()
+    {
+        if (PageStart < -1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(PageStart), PageStart, "PageStart must be -1 for native default behavior or a zero-based page index.");
+        }
+
+        if (PageCount < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(PageCount), PageCount, "PageCount must be zero for all pages or a positive page count.");
+        }
     }
 }

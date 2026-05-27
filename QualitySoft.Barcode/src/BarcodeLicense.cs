@@ -12,7 +12,7 @@ public static class BarcodeLicense
     /// </summary>
     public static BarcodeLicenseStatus GetStatus()
     {
-        return new BarcodeLicenseStatus(NativeMethods.qsbc_loader_license_status());
+        return new BarcodeLicenseStatus(NativeMethods.Invoke(() => NativeMethods.qsbc_loader_license_status()));
     }
 
     /// <summary>
@@ -26,7 +26,7 @@ public static class BarcodeLicense
             return GetStatus();
         }
 
-        return new BarcodeLicenseStatus(NativeMethods.qsbc_loader_license_status_file(NativeMethods.ToNullTerminatedUtf8(path)));
+        return new BarcodeLicenseStatus(NativeMethods.Invoke(() => NativeMethods.qsbc_loader_license_status_file(NativeMethods.ToNullTerminatedUtf8(path))));
     }
 
     /// <summary>
@@ -40,7 +40,7 @@ public static class BarcodeLicense
             error = null;
             return true;
         }
-        catch (Exception ex) when (IsNativeLoadException(ex))
+        catch (Exception ex) when (NativeMethods.IsNativeBindingException(ex))
         {
             status = default;
             error = ex.Message;
@@ -59,7 +59,7 @@ public static class BarcodeLicense
             error = null;
             return true;
         }
-        catch (Exception ex) when (IsNativeLoadException(ex))
+        catch (Exception ex) when (NativeMethods.IsNativeBindingException(ex))
         {
             status = default;
             error = ex.Message;
@@ -67,10 +67,4 @@ public static class BarcodeLicense
         }
     }
 
-    private static bool IsNativeLoadException(Exception ex)
-    {
-        return ex is DllNotFoundException
-            || ex is EntryPointNotFoundException
-            || ex is BadImageFormatException;
-    }
 }

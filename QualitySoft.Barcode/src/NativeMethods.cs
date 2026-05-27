@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -26,6 +27,9 @@ internal static class NativeMethods
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int qsbc_loader_license_status();
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr qsbc_loader_abi_version_string();
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int qsbc_loader_license_status_file(byte[] licenseFile);
@@ -66,6 +70,50 @@ internal static class NativeMethods
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate int ResultCallback(IntPtr result, IntPtr userData);
 
+    internal static TResult Invoke<TResult>(Func<TResult> action)
+    {
+        try
+        {
+            return action();
+        }
+        catch (Exception ex) when (IsNativeBindingException(ex))
+        {
+            throw CreateNativeLibraryException(ex);
+        }
+    }
+
+    internal static void Invoke(Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception ex) when (IsNativeBindingException(ex))
+        {
+            throw CreateNativeLibraryException(ex);
+        }
+    }
+
+    internal static bool IsNativeBindingException(Exception ex)
+    {
+        return ex is BarcodeNativeLibraryException
+            || ex is DllNotFoundException
+            || ex is EntryPointNotFoundException
+            || ex is BadImageFormatException;
+    }
+
+    internal static BarcodeNativeLibraryException CreateNativeLibraryException(Exception innerException)
+    {
+        if (innerException is BarcodeNativeLibraryException nativeException)
+        {
+            return nativeException;
+        }
+
+        return new BarcodeNativeLibraryException(
+            "Unable to load the QS Barcode native runtime for " + GetRuntimeIdentifier() + ". " + GetNativeLibraryDiagnostic(),
+            innerException);
+    }
+
     internal static string? PtrToString(IntPtr value)
     {
         return value == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(value);
@@ -103,7 +151,26 @@ internal static class NativeMethods
         return IntPtr.Zero;
     }
 
-    private static string[] GetNativeLibraryCandidates()
+    internal static string GetNativeLibraryDiagnostic()
+    {
+        var builder = new StringBuilder();
+        builder.Append("Runtime identifier: ");
+        builder.Append(GetRuntimeIdentifier());
+        builder.Append(". Native library file: ");
+        builder.Append(GetNativeLibraryFileName());
+        builder.Append(". Set QSBC_NATIVE_LIBRARY to an absolute native library path when deploying custom layouts. Probed paths: ");
+
+        var candidates = GetNativeLibraryCandidates()
+            .Where(candidate => !string.IsNullOrWhiteSpace(candidate))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        builder.Append(candidates.Length == 0 ? "none" : string.Join("; ", candidates));
+        builder.Append('.');
+        return builder.ToString();
+    }
+
+    internal static string[] GetNativeLibraryCandidates()
     {
         var configured = Environment.GetEnvironmentVariable("QSBC_NATIVE_LIBRARY");
         var baseDirectory = AppContext.BaseDirectory;
@@ -130,7 +197,7 @@ internal static class NativeMethods
             };
     }
 
-    private static string GetNativeLibraryFileName()
+    internal static string GetNativeLibraryFileName()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -145,10 +212,14 @@ internal static class NativeMethods
         return LinuxLibraryFileName;
     }
 
-    private static string GetRuntimeIdentifier()
+    internal static string GetRuntimeIdentifier()
     {
         var architecture = RuntimeInformation.ProcessArchitecture;
-        var architectureName = architecture == Architecture.Arm64 ? "arm64" : "x64";
+        var architectureName = architecture == Architecture.X86
+            ? "x86"
+            : architecture == Architecture.Arm64
+                ? "arm64"
+                : "x64";
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -180,6 +251,30 @@ internal static class NativeMethods
         }
 
         return string.Empty;
+    }
+#else
+    internal static string GetNativeLibraryDiagnostic()
+    {
+        return "Runtime identifier: " + GetRuntimeIdentifier() + ". Native library file: " + GetNativeLibraryFileName() + ". On .NET Framework, copy the native DLL next to the application or make it reachable through PATH. Set QSBC_NATIVE_LIBRARY only on .NET 5+ runtimes.";
+    }
+
+    internal static string[] GetNativeLibraryCandidates()
+    {
+        return new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, GetNativeLibraryFileName()),
+            Path.Combine(Environment.CurrentDirectory, GetNativeLibraryFileName())
+        };
+    }
+
+    internal static string GetNativeLibraryFileName()
+    {
+        return WindowsLibraryFileName;
+    }
+
+    internal static string GetRuntimeIdentifier()
+    {
+        return IntPtr.Size == 4 ? "win-x86" : "win-x64";
     }
 #endif
 }

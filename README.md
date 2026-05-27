@@ -77,6 +77,12 @@ foreach (var result in results)
 }
 ```
 
+Async scans take a snapshot of `BarcodeReaderOptions` before native work starts.
+Cancellation is observed before the native scan starts and while stream data is
+copied. Once native scanning is running, the native call is allowed to finish on
+its background scan thread; the returned task can still be canceled so request
+handling does not have to wait for native completion.
+
 ## Supported Barcode Types
 
 The wrapper exposes the native scan mask through the `[Flags]`
@@ -231,6 +237,57 @@ services.AddQualitySoftBarcode();
 ```
 
 Then inject `IBarcodeReader` into services, controllers or background workers.
+
+Applications can also register managed default scan options once. Per-call
+options still override these defaults.
+
+```csharp
+services.AddQualitySoftBarcode(options =>
+{
+    options.Symbologies = BarcodeSymbology.LinearMask;
+    options.MinLength = 4;
+    options.Dpi = 300;
+});
+```
+
+For high-throughput services, configure reader-level concurrency explicitly:
+
+```csharp
+services.AddQualitySoftBarcode(new BarcodeReaderSettings
+{
+    MaxConcurrentScans = Environment.ProcessorCount,
+    DefaultOptions = new BarcodeReaderOptions
+    {
+        Symbologies = BarcodeSymbology.Default,
+        MinLength = 4,
+        Dpi = 300
+    }
+});
+```
+
+`QualitySoftBarcodeReader` is safe to register as a singleton. It limits
+concurrently executing native scans per reader instance, so `ReadAsync` does not
+create unbounded dedicated native scan threads under load. `ReadAsync(byte[])`
+copies the supplied byte array before queuing native work.
+
+## Native Runtime Health Check
+
+For deployment health checks, call the native runtime diagnostic API at startup:
+
+```csharp
+if (!BarcodeNativeLibrary.TryGetVersion(out var version, out var error))
+{
+    Console.WriteLine(error);
+}
+else
+{
+    Console.WriteLine($"QS Barcode native runtime: {version}");
+}
+```
+
+`BarcodeNativeLibrary.GetDiagnostics()` returns the current runtime identifier,
+expected native library file name and probing locations. For custom deployment
+layouts, set `QSBC_NATIVE_LIBRARY` to an absolute path to the native loader.
 
 ## License And Feature Checks
 

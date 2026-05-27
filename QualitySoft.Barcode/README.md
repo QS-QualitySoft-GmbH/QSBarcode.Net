@@ -113,6 +113,36 @@ var reader = provider.GetRequiredService<IBarcodeReader>();
 `TryAddSingleton`, so applications can replace it with their own implementation
 before calling the extension method.
 
+Applications can also register managed default scan options once. Per-call
+options still override these defaults.
+
+```csharp
+services.AddQualitySoftBarcode(options =>
+{
+    options.Symbologies = BarcodeSymbology.LinearMask;
+    options.MinLength = 4;
+    options.Dpi = 300;
+    options.TextEncoding = Encoding.GetEncoding(1252);
+});
+```
+
+For services that process many files concurrently, configure reader-level
+settings explicitly:
+
+```csharp
+services.AddQualitySoftBarcode(new BarcodeReaderSettings
+{
+    MaxConcurrentScans = Environment.ProcessorCount,
+    NativeScanThreadStackSize = BarcodeReaderSettings.DefaultNativeScanThreadStackSize,
+    DefaultOptions = new BarcodeReaderOptions
+    {
+        Symbologies = BarcodeSymbology.Default,
+        MinLength = 4,
+        Dpi = 300
+    }
+});
+```
+
 ## Reading From Different Sources
 
 ```csharp
@@ -130,8 +160,19 @@ The same source types are available in both sync and async form:
 - `byte[]`
 - `Stream`
 
-Async scans run the native work on a background task. Cancellation is observed
-before the native scan starts and while stream data is copied.
+Async scans take a snapshot of the supplied `BarcodeReaderOptions` before the
+native work starts. Cancellation is observed before the native scan starts and
+while stream data is copied. Once native scanning is running, the native call is
+allowed to finish on its background scan thread; the returned task can still be
+canceled so application request handling does not have to wait for the native
+call to return.
+
+`QualitySoftBarcodeReader` is safe to register as a singleton. It limits the
+number of concurrently executing native scans per reader instance using
+`BarcodeReaderSettings.MaxConcurrentScans`. This prevents unbounded dedicated
+native scan threads and their stack reservations under load. `ReadAsync(byte[])`
+copies the supplied byte array before queuing native work so caller-side buffer
+reuse cannot corrupt an in-flight scan.
 
 ## Scan Options
 
@@ -375,6 +416,23 @@ runtimes/osx-arm64/native/
 .NET resolves the matching native library automatically when the application is
 published or restored for a supported runtime identifier.
 
+For deployment health checks, call the native runtime diagnostic API at startup:
+
+```csharp
+if (!BarcodeNativeLibrary.TryGetVersion(out var version, out var error))
+{
+    Console.WriteLine(error);
+}
+else
+{
+    Console.WriteLine($"QS Barcode native runtime: {version}");
+}
+```
+
+`BarcodeNativeLibrary.GetDiagnostics()` returns the current runtime identifier,
+expected native library file name and probing locations. For custom deployment
+layouts, set `QSBC_NATIVE_LIBRARY` to an absolute path to the native loader.
+
 ## Publish Examples
 
 Framework-dependent Linux x64 publish:
@@ -397,9 +455,10 @@ dotnet publish -c Release -r linux-arm64 --self-contained false
 
 ## Troubleshooting
 
-`DllNotFoundException` usually means the app was published without a supported
-RID, the native assets were removed from the output, or the target platform is
-not one of the supported runtime identifiers.
+`BarcodeNativeLibraryException` usually means the app was published without a
+supported RID, the native assets were removed from the output, or the target
+platform is not one of the supported runtime identifiers. The exception message
+includes the runtime identifier and native probing locations.
 
 For Linux deployments, use glibc-based distributions for this package. Alpine
 Linux/musl is not included in the current package.
