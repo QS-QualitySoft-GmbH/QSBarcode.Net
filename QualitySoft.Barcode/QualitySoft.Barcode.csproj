@@ -13,7 +13,7 @@
     <Company>QS QualitySoft GmbH</Company>
     <Title>QualitySoft Barcode SDK for .NET</Title>
     <Description>Production-ready .NET wrapper for the QS Barcode native SDK with synchronous and asynchronous barcode reading, stream/file/memory overloads, license status helpers, native scan options, text encoding support and dependency injection integration.</Description>
-    <PackageProjectUrl>https://github.com/QS-QualitySoft-GmbH/QSBarcode.Net</PackageProjectUrl>
+    <PackageProjectUrl>https://qualitysoft.de/products/qs-barcode-sdk/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/QS-QualitySoft-GmbH/QSBarcode.Net</RepositoryUrl>
     <PackageTags>barcode;scanner;reader;pdf417;datamatrix;qrcode;aztec;license;native;async;dependency-injection</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>

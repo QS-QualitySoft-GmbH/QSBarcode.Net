@@ -35,6 +35,9 @@ runtime assets.
 dotnet add package QualitySoft.Barcode
 ```
 
+Product page, pricing and documentation:
+`https://qualitysoft.de/products/qs-barcode-sdk/`
+
 ## Quick Start
 
 ```csharp
@@ -179,8 +182,10 @@ catch (BarcodeScanException ex) when (ex.StatusName == "license_required")
 GmbH. Evaluation and production use require a valid license agreement unless
 your agreement explicitly grants demo usage.
 
-Pricing depends on the licensed feature set, deployment model and commercial
-use case. Contact QS QualitySoft GmbH for licensing and pricing.
+Pricing, licensing options and product documentation are maintained on the
+official product page:
+
+`https://qualitysoft.de/products/qs-barcode-sdk/`
 
 ## Repository Scope
 
@@ -219,4 +224,5 @@ terms.
 ## Links
 
 - NuGet package: `QualitySoft.Barcode`
+- Product page, pricing and documentation: `https://qualitysoft.de/products/qs-barcode-sdk/`
 - Public repository: `https://github.com/QS-QualitySoft-GmbH/QSBarcode.Net`

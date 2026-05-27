@@ -314,10 +314,15 @@ package contains `LICENSE.md` with the full proprietary license notice. Any
 production or commercial use requires a separate written license agreement with
 QS QualitySoft GmbH.
 
+Pricing, licensing options and product documentation are maintained on the
+official product page:
+
+`https://qualitysoft.de/products/qs-barcode-sdk/`
+
 Third-party components such as PDFium remain subject to their own license terms.
 
 ## Links
 
 - NuGet: `QualitySoft.Barcode`
+- Product page, pricing and documentation: `https://qualitysoft.de/products/qs-barcode-sdk/`
 - Public .NET SDK repository: `https://github.com/QS-QualitySoft-GmbH/QSBarcode.Net`
-- Licensing inquiries: QS QualitySoft GmbH
