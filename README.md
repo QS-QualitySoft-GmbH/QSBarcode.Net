@@ -31,8 +31,25 @@ runtime assets.
 
 ## Installation
 
+NuGet package:
+`https://www.nuget.org/packages/QualitySoft.Barcode`
+
+Install with the .NET CLI:
+
 ```powershell
 dotnet add package QualitySoft.Barcode
+```
+
+Or add a `PackageReference` manually:
+
+```xml
+<PackageReference Include="QualitySoft.Barcode" Version="0.1.4" />
+```
+
+Visual Studio Package Manager Console:
+
+```powershell
+Install-Package QualitySoft.Barcode
 ```
 
 Product page, pricing and documentation:
@@ -223,6 +240,6 @@ terms.
 
 ## Links
 
-- NuGet package: `QualitySoft.Barcode`
+- NuGet package: `https://www.nuget.org/packages/QualitySoft.Barcode`
 - Product page, pricing and documentation: `https://qualitysoft.de/products/qs-barcode-sdk/`
 - Public repository: `https://github.com/QS-QualitySoft-GmbH/QSBarcode.Net`

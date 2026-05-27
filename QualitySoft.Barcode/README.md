@@ -20,8 +20,25 @@ options, text encoding control and license-aware feature checks.
 
 ## Installation
 
+NuGet package:
+`https://www.nuget.org/packages/QualitySoft.Barcode`
+
+Install with the .NET CLI:
+
 ```powershell
 dotnet add package QualitySoft.Barcode
+```
+
+Or add a `PackageReference` manually:
+
+```xml
+<PackageReference Include="QualitySoft.Barcode" Version="0.1.4" />
+```
+
+Visual Studio Package Manager Console:
+
+```powershell
+Install-Package QualitySoft.Barcode
 ```
 
 ## Supported Frameworks
@@ -323,6 +340,6 @@ Third-party components such as PDFium remain subject to their own license terms.
 
 ## Links
 
-- NuGet: `QualitySoft.Barcode`
+- NuGet package: `https://www.nuget.org/packages/QualitySoft.Barcode`
 - Product page, pricing and documentation: `https://qualitysoft.de/products/qs-barcode-sdk/`
 - Public .NET SDK repository: `https://github.com/QS-QualitySoft-GmbH/QSBarcode.Net`
