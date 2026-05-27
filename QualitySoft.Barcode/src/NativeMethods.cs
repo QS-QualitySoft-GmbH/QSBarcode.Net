@@ -32,6 +32,9 @@ internal static class NativeMethods
     internal static extern IntPtr qsbc_loader_abi_version_string();
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr qsbc_loader_engine_version_string();
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int qsbc_loader_license_status_file(byte[] licenseFile);
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]

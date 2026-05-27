@@ -16,6 +16,14 @@ public static class BarcodeNativeLibrary
     }
 
     /// <summary>
+    /// Returns the native QS Barcode engine version string.
+    /// </summary>
+    public static string GetEngineVersion()
+    {
+        return NativeMethods.Invoke(() => NativeMethods.PtrToString(NativeMethods.qsbc_loader_engine_version_string())) ?? "unknown";
+    }
+
+    /// <summary>
     /// Checks whether the native runtime can be loaded by the current process.
     /// </summary>
     public static bool TryGetVersion(out string? version, out string? error)
@@ -23,6 +31,25 @@ public static class BarcodeNativeLibrary
         try
         {
             version = GetVersion();
+            error = null;
+            return true;
+        }
+        catch (Exception ex) when (NativeMethods.IsNativeBindingException(ex))
+        {
+            version = null;
+            error = ex.Message;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Checks whether the native engine version can be read by the current process.
+    /// </summary>
+    public static bool TryGetEngineVersion(out string? version, out string? error)
+    {
+        try
+        {
+            version = GetEngineVersion();
             error = null;
             return true;
         }

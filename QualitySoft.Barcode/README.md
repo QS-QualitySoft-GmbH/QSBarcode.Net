@@ -26,19 +26,19 @@ NuGet package:
 Install with the .NET CLI:
 
 ```powershell
-dotnet add package QualitySoft.Barcode --version 0.2.3
+dotnet add package QualitySoft.Barcode --version 0.3.0
 ```
 
 Or add a `PackageReference` manually:
 
 ```xml
-<PackageReference Include="QualitySoft.Barcode" Version="0.2.3" />
+<PackageReference Include="QualitySoft.Barcode" Version="0.3.0" />
 ```
 
 Visual Studio Package Manager Console:
 
 ```powershell
-Install-Package QualitySoft.Barcode -Version 0.2.3
+Install-Package QualitySoft.Barcode -Version 0.3.0
 ```
 
 ## Supported Frameworks
@@ -283,6 +283,11 @@ license path before the first scan:
 export QSBC_LICENSE_FILE=/etc/qualitysoft/qsbc.lic
 ```
 
+The current native engine line is `QS-Barcode SDK 6.0`. Commercial license
+files for this rollout should therefore be issued for `QS-Barcode SDK 6.0`.
+Older `5.0` license files are treated as outdated by the legacy license check
+and fall back to demo behavior.
+
 ```csharp
 using QualitySoft.Barcode;
 
@@ -430,7 +435,8 @@ if (!BarcodeNativeLibrary.TryGetVersion(out var version, out var error))
 }
 else
 {
-    Console.WriteLine($"QS Barcode native runtime: {version}");
+    Console.WriteLine($"QS Barcode native loader ABI: {version}");
+    Console.WriteLine($"QS Barcode native engine: {BarcodeNativeLibrary.GetEngineVersion()}");
 }
 ```
 
@@ -440,7 +446,7 @@ layouts, set `QSBC_NATIVE_LIBRARY` to an absolute path to the native loader.
 
 ## Release Notes
 
-### 0.2.3
+### 0.3.0
 
 - Rebuilt native runtime assets for Windows, Linux and macOS.
 - Hardened EC/PDF417 native decoding against invalid candidates and
@@ -449,6 +455,8 @@ layouts, set `QSBC_NATIVE_LIBRARY` to an absolute path to the native loader.
   PDF417 mask could terminate the native process instead of returning zero
   results.
 - Added a regression fixture for the PDF417 miss path.
+- Bumped the native QS Barcode engine license line to `6.0`.
+- Added native and .NET diagnostics for the QS Barcode engine version.
 
 ## Publish Examples
 
