@@ -26,19 +26,19 @@ NuGet package:
 Install with the .NET CLI:
 
 ```powershell
-dotnet add package QualitySoft.Barcode
+dotnet add package QualitySoft.Barcode --version 0.2.3
 ```
 
 Or add a `PackageReference` manually:
 
 ```xml
-<PackageReference Include="QualitySoft.Barcode" Version="0.2.0" />
+<PackageReference Include="QualitySoft.Barcode" Version="0.2.3" />
 ```
 
 Visual Studio Package Manager Console:
 
 ```powershell
-Install-Package QualitySoft.Barcode
+Install-Package QualitySoft.Barcode -Version 0.2.3
 ```
 
 ## Supported Frameworks
@@ -71,6 +71,11 @@ The NuGet package contains native runtime assets for:
 
 Mobile platforms such as Android and iOS are intentionally not part of this
 package. They require separate .NET MAUI or platform binding packages.
+
+PDF input is supported on all listed desktop/server RIDs through bundled PDFium
+runtime assets. Applications normally do not need to copy native libraries
+manually when they restore or publish for one of the supported runtime
+identifiers.
 
 ## Quick Start
 
@@ -433,6 +438,18 @@ else
 expected native library file name and probing locations. For custom deployment
 layouts, set `QSBC_NATIVE_LIBRARY` to an absolute path to the native loader.
 
+## Release Notes
+
+### 0.2.3
+
+- Rebuilt native runtime assets for Windows, Linux and macOS.
+- Hardened EC/PDF417 native decoding against invalid candidates and
+  out-of-range codewords.
+- Fixed a PDF417 miss case where scanning a Data Matrix-heavy TIFF with a
+  PDF417 mask could terminate the native process instead of returning zero
+  results.
+- Added a regression fixture for the PDF417 miss path.
+
 ## Publish Examples
 
 Framework-dependent Linux x64 publish:
@@ -485,3 +502,4 @@ Third-party components such as PDFium remain subject to their own license terms.
 - NuGet package: `https://www.nuget.org/packages/QualitySoft.Barcode`
 - Product page, pricing and documentation: `https://qualitysoft.de/products/qs-barcode-sdk/`
 - Public .NET SDK repository: `https://github.com/QS-QualitySoft-GmbH/QSBarcode.Net`
+- Changelog: `https://github.com/QS-QualitySoft-GmbH/QSBarcode.Net/blob/main/CHANGELOG.md`
