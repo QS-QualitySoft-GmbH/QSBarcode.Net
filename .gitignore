@@ -1,0 +1,9 @@
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.lic
+native/*/
+!native/README.md
+artifacts/

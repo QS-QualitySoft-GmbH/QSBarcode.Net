@@ -1,0 +1,125 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net8.0</TargetFrameworks>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <PackageId>QualitySoft.Barcode</PackageId>
+    <AssemblyName>QualitySoft.Barcode</AssemblyName>
+    <RootNamespace>QualitySoft.Barcode</RootNamespace>
+    <Version>0.1.0</Version>
+    <Authors>QS QualitySoft GmbH</Authors>
+    <Company>QS QualitySoft GmbH</Company>
+    <Title>QualitySoft Barcode SDK for .NET</Title>
+    <Description>Production-ready .NET wrapper for the QS Barcode native SDK with synchronous and asynchronous barcode reading, stream/file/memory overloads, license status helpers, native scan options, text encoding support and dependency injection integration.</Description>
+    <PackageProjectUrl>https://github.com/QS-QualitySoft-GmbH/QSBarcode.Net</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/QS-QualitySoft-GmbH/QSBarcode.Net</RepositoryUrl>
+    <PackageTags>barcode;scanner;reader;pdf417;datamatrix;qrcode;aztec;license;native;async;dependency-injection</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <RepositoryType>git</RepositoryType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\LICENSE.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\qs_barcode_loader_sdk.dll"
+          Pack="true"
+          PackagePath="runtimes\win-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\qs_barcode_loader_sdk.dll') And !Exists('$(MSBuildThisFileDirectory)..\native\win-x64\qs_barcode_loader_sdk.dll')" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\pdfium.dll"
+          Pack="true"
+          PackagePath="runtimes\win-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\pdfium.dll') And !Exists('$(MSBuildThisFileDirectory)..\native\win-x64\pdfium.dll')" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libqs_barcode_loader_sdk.so"
+          Pack="true"
+          PackagePath="runtimes\linux-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libqs_barcode_loader_sdk.so') And !Exists('$(MSBuildThisFileDirectory)..\native\linux-x64\libqs_barcode_loader_sdk.so')" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libpdfium.so"
+          Pack="true"
+          PackagePath="runtimes\linux-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libpdfium.so') And !Exists('$(MSBuildThisFileDirectory)..\native\linux-x64\libpdfium.so')" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libqs_barcode_loader_sdk.dylib"
+          Pack="true"
+          PackagePath="runtimes\osx-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libqs_barcode_loader_sdk.dylib') And !Exists('$(MSBuildThisFileDirectory)..\native\osx-x64\libqs_barcode_loader_sdk.dylib')" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libpdfium.dylib"
+          Pack="true"
+          PackagePath="runtimes\osx-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libpdfium.dylib') And !Exists('$(MSBuildThisFileDirectory)..\native\osx-x64\libpdfium.dylib')" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\native\win-x86\qs_barcode_loader_sdk.dll"
+          Pack="true"
+          PackagePath="runtimes\win-x86\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\win-x86\qs_barcode_loader_sdk.dll')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\win-x86\pdfium.dll"
+          Pack="true"
+          PackagePath="runtimes\win-x86\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\win-x86\pdfium.dll')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\win-x64\qs_barcode_loader_sdk.dll"
+          Pack="true"
+          PackagePath="runtimes\win-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\win-x64\qs_barcode_loader_sdk.dll')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\win-x64\pdfium.dll"
+          Pack="true"
+          PackagePath="runtimes\win-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\win-x64\pdfium.dll')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\win-arm64\qs_barcode_loader_sdk.dll"
+          Pack="true"
+          PackagePath="runtimes\win-arm64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\win-arm64\qs_barcode_loader_sdk.dll')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\win-arm64\pdfium.dll"
+          Pack="true"
+          PackagePath="runtimes\win-arm64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\win-arm64\pdfium.dll')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\linux-x64\libqs_barcode_loader_sdk.so"
+          Pack="true"
+          PackagePath="runtimes\linux-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\linux-x64\libqs_barcode_loader_sdk.so')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\linux-x64\libpdfium.so"
+          Pack="true"
+          PackagePath="runtimes\linux-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\linux-x64\libpdfium.so')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\linux-arm64\libqs_barcode_loader_sdk.so"
+          Pack="true"
+          PackagePath="runtimes\linux-arm64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\linux-arm64\libqs_barcode_loader_sdk.so')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\linux-arm64\libpdfium.so"
+          Pack="true"
+          PackagePath="runtimes\linux-arm64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\linux-arm64\libpdfium.so')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\osx-x64\libqs_barcode_loader_sdk.dylib"
+          Pack="true"
+          PackagePath="runtimes\osx-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\osx-x64\libqs_barcode_loader_sdk.dylib')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\osx-x64\libpdfium.dylib"
+          Pack="true"
+          PackagePath="runtimes\osx-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\osx-x64\libpdfium.dylib')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\osx-arm64\libqs_barcode_loader_sdk.dylib"
+          Pack="true"
+          PackagePath="runtimes\osx-arm64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\osx-arm64\libqs_barcode_loader_sdk.dylib')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\osx-arm64\libpdfium.dylib"
+          Pack="true"
+          PackagePath="runtimes\osx-arm64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\osx-arm64\libpdfium.dylib')" />
+  </ItemGroup>
+</Project>
