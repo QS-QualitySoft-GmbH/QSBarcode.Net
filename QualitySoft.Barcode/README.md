@@ -136,7 +136,8 @@ before the native scan starts and while stream data is copied.
 ## Scan Options
 
 `BarcodeReaderOptions` defaults to native SDK behavior where possible. Set only
-the values you need.
+the values you need. Numeric tuning values use `0` as "native default" unless
+the option documents a different default.
 
 ```csharp
 var options = new BarcodeReaderOptions
@@ -150,26 +151,75 @@ var options = new BarcodeReaderOptions
 };
 ```
 
-Useful defaults:
+| Option | Default | Purpose |
+| --- | --- | --- |
+| `Symbologies` | `NativeDefault` | Barcode mask to scan. Combine values with `|`, for example `Code128 | DataMatrix`. |
+| `MinLength` | `1` | Minimum decoded text length. Values below `1` are normalized to `1`. |
+| `PageStart` | `-1` | Zero-based first page for PDF/TIFF inputs. `-1` starts at the first page. |
+| `PageCount` | `0` | Number of pages to scan. `0` means all remaining pages. |
+| `Dpi` | `0` | PDF render DPI. `0` keeps the native default. Use `200` or `300` for many document workflows. |
+| `Threshold` | `0` | Binarization threshold. `0` keeps automatic thresholding. |
+| `Orientation` | `Default` | Restricts scan orientation when needed. |
+| `Flags` | `None` | Optional engine flags for Data Matrix and QR tuning. |
+| `TextEncoding` | auto | Decodes `BarcodeResult.Text`. UTF-8 is tried first, then Windows-1252 fallback unless an encoding is supplied. |
+| `DataMatrixFinderAngleTolerance` | `0` | Data Matrix finder angle tuning. |
+| `DataMatrixOverlapPercent` | `0` | Data Matrix overlap tuning. |
+| `DataMatrixMaxLineCandidates` | `0` | Data Matrix candidate limit. |
+| `MaxSkewDegrees` | `0` | Maximum skew correction in degrees. |
+| `LightMargin` | `0` | Linear barcode quiet-zone/light-margin tuning. |
+| `ScanDistanceBarcode` | `0` | Linear barcode scan-distance tuning. |
+| `Tolerance` | `0` | Linear barcode tolerance tuning. |
+| `MinHeight` | `0` | Minimum barcode height. |
+| `MaxHeight` | `0` | Maximum barcode height. |
+| `Percent` | `0` | Legacy engine percentage option. |
+| `ScanDistance` | `0` | Legacy engine scan-distance option. |
+| `MaxGap` | `0` | Maximum allowed gap for linear decoding. |
+| `ChecksumFlags` | `0` | Engine-specific checksum behavior. |
 
-- `Symbologies = BarcodeSymbology.NativeDefault` passes mask `0` to the native
-  engine.
-- `MinLength = 1` follows the legacy loader default.
-- Numeric tuning values default to `0`, which keeps native automatic behavior.
-- `PageStart = -1` and `PageCount = 0` scan all pages.
+Orientation values:
+
+| `BarcodeOrientation` value | Meaning |
+| --- | --- |
+| `Default` | Let the native engine decide. |
+| `Degrees0`, `Degrees90`, `Degrees180`, `Degrees270` | Scan only one orientation. |
+| `Degrees0And180`, `Degrees90And270` | Scan paired orientations. |
+| `All` | Scan all four main orientations. |
+
+Scan flags:
+
+| `BarcodeScanFlags` value | Purpose |
+| --- | --- |
+| `DataMatrixReportSymbolIdentifier` | Include Data Matrix symbol identifier behavior from the native engine. |
+| `DataMatrixSuppressEci` | Suppress Data Matrix ECI handling. |
+| `DataMatrixIntensiveSearch` | Enable more intensive Data Matrix search. |
+| `DataMatrixSearchOnDoubledRegion` | Search Data Matrix on doubled regions. |
+| `DataMatrixZebraDoubling` | Enable Data Matrix zebra doubling mode. |
+| `DataMatrixTryErodedImage` | Try eroded-image Data Matrix decoding. |
+| `QrEci` | Enable QR ECI handling. |
+| `QrDoubleImage` | Enable QR double-image mode. |
 
 ## Symbologies
 
-The wrapper exposes strongly typed masks for common QS Barcode features:
+The wrapper exposes the native scan mask through the `[Flags]`
+`BarcodeSymbology` enum, so barcode types can be combined with `|`.
 
-- Linear barcodes such as Code 128, Code 39, EAN/UPC and related 1D formats
-- PDF417
-- Data Matrix
-- QR Code
-- Aztec
+| Group | `BarcodeSymbology` values |
+| --- | --- |
+| Common 1D / linear | `Code128`, `Ean128`, `Code39`, `Code39Ext`, `Code32`, `Code11`, `Codabar`, `Code93`, `Code93Ext` |
+| Interleaved and industrial 2 of 5 | `I25`, `Industrial25`, `Iata25`, `Inverted25`, `Matrix25`, `Datalogic25`, `BcdMatrix25` |
+| EAN / UPC | `Ean8`, `Ean13`, `Upca`, `Upce` |
+| GS1 DataBar | `Databar`, `DatabarOmni`, `DatabarExpanded`, `DatabarLimited` |
+| Other linear families | `Codablock`, `Pharma`, `Patch`, `Postal` |
+| 2D | `DataMatrix`, `Qr`, `Aztec`, `Pdf417` |
+| Presets | `NativeDefault`, `Default`, `LinearMask`, `TwoDimensionalMask`, `All` |
+
+`NativeDefault` passes mask `0` to the native engine. `Default` is the managed
+common-use preset and excludes the more specialized `Pharma`, `Patch` and
+`Postal` families.
 
 License status determines which optional feature groups are available at
-runtime.
+runtime. Applications can check `BarcodeLicense.GetStatus()` before enabling
+feature-specific workflows.
 
 ## License Handling
 
@@ -178,6 +228,14 @@ requires a valid commercial license agreement with QS QualitySoft GmbH unless
 your agreement explicitly permits demo or evaluation use.
 
 The native engine exposes license status to managed code:
+
+By default, the native runtime searches for `qsbc.lic`. For Linux, macOS,
+containers and hosted applications, set `QSBC_LICENSE_FILE` to an absolute
+license path before the first scan:
+
+```bash
+export QSBC_LICENSE_FILE=/etc/qualitysoft/qsbc.lic
+```
 
 ```csharp
 using QualitySoft.Barcode;
@@ -195,7 +253,7 @@ Console.WriteLine($"Aztec: {status.AllowsAztec}");
 To test a specific license file:
 
 ```csharp
-var status = BarcodeLicense.GetStatus(@"C:\licenses\qsbc.lic");
+var status = BarcodeLicense.GetStatus("/etc/qualitysoft/qsbc.lic");
 ```
 
 Before enabling feature-specific UI or workflows, check the requested
