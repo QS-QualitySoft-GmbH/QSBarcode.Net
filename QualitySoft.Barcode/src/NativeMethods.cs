@@ -22,6 +22,7 @@ internal static class NativeMethods
     private const string PdfRenderWorkerEnvironmentVariable = "QSBC_PDF_RENDER_WORKER";
     private const string WindowsPdfRenderWorkerFileName = "qs_barcode_pdf_render_worker.exe";
     private const string UnixPdfRenderWorkerFileName = "qs_barcode_pdf_render_worker";
+    private const int LocalDevelopmentSearchDepth = 16;
 
     static NativeMethods()
     {
@@ -255,6 +256,8 @@ internal static class NativeMethods
         candidates.Add(Path.Combine(Environment.CurrentDirectory, workerFileName));
         candidates.Add(FindRepoNativeFile(baseDirectory, workerFileName));
         candidates.Add(FindRepoNativeFile(Environment.CurrentDirectory, workerFileName));
+        candidates.Add(FindArtifactsNativeFile(baseDirectory, workerFileName));
+        candidates.Add(FindArtifactsNativeFile(Environment.CurrentDirectory, workerFileName));
         candidates.Add(FindSdkNativeFile(baseDirectory, workerFileName));
         candidates.Add(FindSdkNativeFile(Environment.CurrentDirectory, workerFileName));
 
@@ -327,6 +330,8 @@ internal static class NativeMethods
                 Path.Combine(Environment.CurrentDirectory, libraryFileName),
                 FindRepoNativeLibrary(baseDirectory),
                 FindRepoNativeLibrary(Environment.CurrentDirectory),
+                FindArtifactsNativeLibrary(baseDirectory),
+                FindArtifactsNativeLibrary(Environment.CurrentDirectory),
                 FindSdkNativeLibrary(baseDirectory),
                 FindSdkNativeLibrary(Environment.CurrentDirectory)
             }
@@ -338,6 +343,8 @@ internal static class NativeMethods
                 Path.Combine(Environment.CurrentDirectory, libraryFileName),
                 FindRepoNativeLibrary(baseDirectory),
                 FindRepoNativeLibrary(Environment.CurrentDirectory),
+                FindArtifactsNativeLibrary(baseDirectory),
+                FindArtifactsNativeLibrary(Environment.CurrentDirectory),
                 FindSdkNativeLibrary(baseDirectory),
                 FindSdkNativeLibrary(Environment.CurrentDirectory)
             };
@@ -402,9 +409,33 @@ internal static class NativeMethods
     {
         var directory = new DirectoryInfo(startDirectory);
 
-        for (var i = 0; directory != null && i < 8; i++)
+        for (var i = 0; directory != null && i < LocalDevelopmentSearchDepth; i++)
         {
             var candidate = Path.Combine(directory.FullName, "zig-out", "bin", fileName);
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+
+            directory = directory.Parent;
+        }
+
+        return string.Empty;
+    }
+
+    private static string FindArtifactsNativeLibrary(string startDirectory)
+    {
+        return FindArtifactsNativeFile(startDirectory, GetNativeLibraryFileName());
+    }
+
+    private static string FindArtifactsNativeFile(string startDirectory, string fileName)
+    {
+        var directory = new DirectoryInfo(startDirectory);
+        var runtimeIdentifier = GetRuntimeIdentifier();
+
+        for (var i = 0; directory != null && i < LocalDevelopmentSearchDepth; i++)
+        {
+            var candidate = Path.Combine(directory.FullName, "artifacts", "native-runtime", runtimeIdentifier, fileName);
             if (File.Exists(candidate))
             {
                 return candidate;
@@ -421,7 +452,7 @@ internal static class NativeMethods
         var directory = new DirectoryInfo(startDirectory);
         var runtimeIdentifier = GetRuntimeIdentifier();
 
-        for (var i = 0; directory != null && i < 8; i++)
+        for (var i = 0; directory != null && i < LocalDevelopmentSearchDepth; i++)
         {
             var candidate = Path.Combine(directory.FullName, "sdk", "dotnet", "native", runtimeIdentifier, fileName);
             if (File.Exists(candidate))
