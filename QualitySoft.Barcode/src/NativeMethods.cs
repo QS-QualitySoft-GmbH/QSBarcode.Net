@@ -254,12 +254,12 @@ internal static class NativeMethods
         candidates.Add(Path.Combine(baseDirectory, workerFileName));
         candidates.Add(Path.Combine(baseDirectory, "runtimes", runtimeIdentifier, "native", workerFileName));
         candidates.Add(Path.Combine(Environment.CurrentDirectory, workerFileName));
-        candidates.Add(FindRepoNativeFile(baseDirectory, workerFileName));
-        candidates.Add(FindRepoNativeFile(Environment.CurrentDirectory, workerFileName));
         candidates.Add(FindArtifactsNativeFile(baseDirectory, workerFileName));
         candidates.Add(FindArtifactsNativeFile(Environment.CurrentDirectory, workerFileName));
         candidates.Add(FindSdkNativeFile(baseDirectory, workerFileName));
         candidates.Add(FindSdkNativeFile(Environment.CurrentDirectory, workerFileName));
+        candidates.Add(FindRepoNativeFile(baseDirectory, workerFileName));
+        candidates.Add(FindRepoNativeFile(Environment.CurrentDirectory, workerFileName));
 
         return candidates.ToArray();
     }
@@ -328,12 +328,12 @@ internal static class NativeMethods
                 Path.Combine(baseDirectory, libraryFileName),
                 Path.Combine(baseDirectory, "runtimes", runtimeIdentifier, "native", libraryFileName),
                 Path.Combine(Environment.CurrentDirectory, libraryFileName),
-                FindRepoNativeLibrary(baseDirectory),
-                FindRepoNativeLibrary(Environment.CurrentDirectory),
                 FindArtifactsNativeLibrary(baseDirectory),
                 FindArtifactsNativeLibrary(Environment.CurrentDirectory),
                 FindSdkNativeLibrary(baseDirectory),
-                FindSdkNativeLibrary(Environment.CurrentDirectory)
+                FindSdkNativeLibrary(Environment.CurrentDirectory),
+                FindRepoNativeLibrary(baseDirectory),
+                FindRepoNativeLibrary(Environment.CurrentDirectory)
             }
             : new[]
             {
@@ -341,12 +341,12 @@ internal static class NativeMethods
                 Path.Combine(baseDirectory, libraryFileName),
                 Path.Combine(baseDirectory, "runtimes", runtimeIdentifier, "native", libraryFileName),
                 Path.Combine(Environment.CurrentDirectory, libraryFileName),
-                FindRepoNativeLibrary(baseDirectory),
-                FindRepoNativeLibrary(Environment.CurrentDirectory),
                 FindArtifactsNativeLibrary(baseDirectory),
                 FindArtifactsNativeLibrary(Environment.CurrentDirectory),
                 FindSdkNativeLibrary(baseDirectory),
-                FindSdkNativeLibrary(Environment.CurrentDirectory)
+                FindSdkNativeLibrary(Environment.CurrentDirectory),
+                FindRepoNativeLibrary(baseDirectory),
+                FindRepoNativeLibrary(Environment.CurrentDirectory)
             };
     }
 
