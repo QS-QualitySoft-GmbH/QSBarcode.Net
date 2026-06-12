@@ -25,6 +25,29 @@ Supported feature groups include:
 - cross-platform native execution on Windows, Linux and macOS
 - license-aware feature checks for demo, evaluation and commercial deployments
 
+## What's New For Developers In 6.0.0
+
+Version 6.0.0 expands the wrapper from a file/stream reader into a fuller SDK
+surface for high-throughput document services and custom image pipelines:
+
+- memory-first scanning with `ReadOnlySpan<byte>`, `ReadOnlyMemory<byte>` and
+  unmanaged `IntPtr` overloads for encoded image/PDF buffers
+- raw pixel scanning with `ReadRawGray8` and `ReadRawPixels` for Gray8, RGB,
+  BGR, RGBA and BGRA buffers, including stride-aware pointer overloads
+- `ScanTimeoutMs` on `BarcodeReaderOptions` for native scan time limits
+- typed format detection via `DetectFormat(...)` for files, streams, memory and
+  unmanaged buffers
+- page counting via `GetPageCount(...)` for PDFs and multi-page image formats
+- PDF/image rendering APIs: `RenderPage`, `RenderPageGray8`, `RenderPages` and
+  async render overloads
+- a reusable native scan worker pool controlled by `BarcodeReaderSettings` so
+  each scan no longer needs a fresh large-stack thread
+- PDF render worker warmup for PDF-heavy workloads
+- native diagnostics, capabilities and format support helpers through
+  `BarcodeNativeLibrary`
+- richer license helpers and `BarcodeScanException` details for production
+  feature gating and demo-mode handling
+
 The public repository contains the .NET wrapper and API surface. The proprietary
 native engine is delivered through the NuGet package as platform-specific native
 runtime assets.
@@ -378,6 +401,17 @@ if (pdfSupported)
 
 ### 6.0.0
 
+- Added memory-first scan overloads for `ReadOnlySpan<byte>`,
+  `ReadOnlyMemory<byte>` and unmanaged `IntPtr` encoded buffers.
+- Added raw Gray8 and raw color pixel scanning for pre-rendered image pipelines.
+- Added PDF/image render APIs, including Gray8 render output and multi-page
+  render helpers.
+- Added `DetectFormat(...)`, `GetPageCount(...)`, native capabilities and public
+  diagnostics helpers.
+- Added `ScanTimeoutMs` and a reusable native scan worker pool for
+  high-throughput and PDF-heavy workloads.
+- Added explicit demo-mode behavior for 1D and 2D payloads plus richer license
+  exception details.
 - Rebuilt native runtime assets for Windows, Linux and macOS.
 - Hardened EC/PDF417 native decoding against invalid candidates and
   out-of-range codewords.

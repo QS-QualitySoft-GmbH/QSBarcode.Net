@@ -9,7 +9,13 @@ options, text encoding control and license-aware feature checks.
 ## Highlights
 
 - Barcode reading from files, `FileInfo`, `Stream` and `byte[]`
+- Memory-first scanning from `ReadOnlySpan<byte>`, `ReadOnlyMemory<byte>` and
+  unmanaged `IntPtr` encoded buffers
+- Raw pixel scanning for Gray8, RGB, BGR, RGBA and BGRA buffers
 - Sync and async APIs
+- Reusable native scan worker pool for high-throughput workloads
+- PDF/image render APIs with BMP and Gray8 output
+- Format detection and page counting helpers
 - PDF rendering through bundled PDFium runtime assets
 - Windows, Linux and macOS native binaries in one NuGet package
 - License status helpers for demo and commercial feature gating
@@ -17,6 +23,20 @@ options, text encoding control and license-aware feature checks.
   orientation and legacy tuning values
 - Text decoding with UTF-8 fallback handling and configurable legacy encodings
 - ASP.NET Core / generic host dependency injection integration
+
+## What's New In 6.0.0
+
+6.0.0 adds the SDK surface needed for services that already own image memory,
+render PDFs themselves or process many documents concurrently:
+
+- `Read(...)` overloads for spans, memories and unmanaged encoded buffers
+- `ReadRawGray8(...)` and `ReadRawPixels(...)` for pre-rendered pixel buffers
+- `ScanTimeoutMs` for native scan time limits
+- `DetectFormat(...)` and `GetPageCount(...)` for diagnostics and routing
+- `RenderPage(...)`, `RenderPageGray8(...)` and `RenderPages(...)`
+- `BarcodeReaderSettings.MaxConcurrentScans` and PDF render worker warmup
+- `BarcodeNativeLibrary.GetCapabilities()` and format support checks
+- richer demo/license helpers and `BarcodeScanException` license details
 
 ## Installation
 
