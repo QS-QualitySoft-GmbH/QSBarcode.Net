@@ -26,19 +26,19 @@ NuGet package:
 Install with the .NET CLI:
 
 ```powershell
-dotnet add package QualitySoft.Barcode --version 0.3.0
+dotnet add package QualitySoft.Barcode --version 6.0.0
 ```
 
 Or add a `PackageReference` manually:
 
 ```xml
-<PackageReference Include="QualitySoft.Barcode" Version="0.3.0" />
+<PackageReference Include="QualitySoft.Barcode" Version="6.0.0" />
 ```
 
 Visual Studio Package Manager Console:
 
 ```powershell
-Install-Package QualitySoft.Barcode -Version 0.3.0
+Install-Package QualitySoft.Barcode -Version 6.0.0
 ```
 
 ## Supported Frameworks
@@ -139,6 +139,7 @@ services.AddQualitySoftBarcode(new BarcodeReaderSettings
 {
     MaxConcurrentScans = Environment.ProcessorCount,
     NativeScanThreadStackSize = BarcodeReaderSettings.DefaultNativeScanThreadStackSize,
+    CopyInputBuffersForAsyncByteArray = true,
     DefaultOptions = new BarcodeReaderOptions
     {
         Symbologies = BarcodeSymbology.Default,
@@ -173,11 +174,40 @@ canceled so application request handling does not have to wait for the native
 call to return.
 
 `QualitySoftBarcodeReader` is safe to register as a singleton. It limits the
-number of concurrently executing native scans per reader instance using
-`BarcodeReaderSettings.MaxConcurrentScans`. This prevents unbounded dedicated
-native scan threads and their stack reservations under load. `ReadAsync(byte[])`
-copies the supplied byte array before queuing native work so caller-side buffer
-reuse cannot corrupt an in-flight scan.
+number of concurrently executing native scans per reader instance using a
+fixed native worker pool sized by `BarcodeReaderSettings.MaxConcurrentScans`.
+Each worker owns the larger native scan stack, so high-throughput callers avoid
+creating one large-stack thread per scan.
+
+`ReadAsync(byte[])` copies the supplied byte array before queuing native work so
+caller-side buffer reuse cannot corrupt an in-flight scan. For high-throughput
+code that keeps buffers immutable until the task completes, prefer
+`ReadAsync(ReadOnlyMemory<byte>)`, `ReadAsync(IntPtr, int)`, or set
+`BarcodeReaderSettings.CopyInputBuffersForAsyncByteArray = false`.
+
+For raw image pipelines, use `ReadRawGray8(...)` for zero-copy grayscale input
+or `ReadRawPixels(...)` for RGB/BGR/RGBA/BGRA input. Non-Gray8 formats are
+converted to Gray8 by the managed wrapper before native scanning.
+
+Page and render helpers are available for diagnostics and PDF/TIFF/GIF
+workflows:
+
+```csharp
+int pages = reader.GetPageCount(@"C:\data\document.pdf");
+BarcodeRenderedImage bmp = reader.RenderPage(@"C:\data\document.pdf");
+BarcodeRenderedImage gray = reader.RenderPageGray8(@"C:\data\document.pdf");
+IReadOnlyList<BarcodeRenderedImage> allPages = reader.RenderPagesGray8(@"C:\data\document.pdf");
+```
+
+`RenderPage(...)` returns complete 24-bit BMP bytes. `RenderPageGray8(...)`
+returns tightly packed raw grayscale pixels in `BarcodeRenderedImage.Bytes`
+with `PixelFormat = Gray8` and `Stride = Width`.
+
+Run local performance checks with:
+
+```powershell
+dotnet run -c Release --project sdk\dotnet\QualitySoft.Barcode.Benchmarks
+```
 
 ## Scan Options
 
@@ -221,6 +251,7 @@ var options = new BarcodeReaderOptions
 | `ScanDistance` | `0` | Legacy engine scan-distance option. |
 | `MaxGap` | `0` | Maximum allowed gap for linear decoding. |
 | `ChecksumFlags` | `0` | Engine-specific checksum behavior. |
+| `ScanTimeoutMs` | `0` | Whole native scan timeout in milliseconds. `0` disables the timeout. |
 
 Orientation values:
 
@@ -446,7 +477,7 @@ layouts, set `QSBC_NATIVE_LIBRARY` to an absolute path to the native loader.
 
 ## Release Notes
 
-### 0.3.0
+### 6.0.0
 
 - Rebuilt native runtime assets for Windows, Linux and macOS.
 - Hardened EC/PDF417 native decoding against invalid candidates and
@@ -489,7 +520,8 @@ For Linux deployments, use glibc-based distributions for this package. Alpine
 Linux/musl is not included in the current package.
 
 If PDF input cannot be rendered, verify that the matching `pdfium` native asset
-is present in the publish output beside the QS Barcode loader library.
+and `qs_barcode_pdf_render_worker` are present in the publish output beside the
+QS Barcode loader library.
 
 ## License
 

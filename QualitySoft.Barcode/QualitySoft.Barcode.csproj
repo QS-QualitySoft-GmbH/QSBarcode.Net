@@ -5,10 +5,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>QualitySoft.Barcode</PackageId>
     <AssemblyName>QualitySoft.Barcode</AssemblyName>
     <RootNamespace>QualitySoft.Barcode</RootNamespace>
-    <Version>0.1.0</Version>
+    <Version>6.0.0</Version>
     <Authors>QS QualitySoft GmbH</Authors>
     <Company>QS QualitySoft GmbH</Company>
     <Title>QualitySoft Barcode SDK for .NET</Title>
@@ -46,22 +47,42 @@
           Pack="true"
           PackagePath="runtimes\win-x64\native\"
           Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\pdfium.dll') And !Exists('$(MSBuildThisFileDirectory)..\native\win-x64\pdfium.dll')" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\qs_barcode_pdf_render_worker.exe"
+          Pack="true"
+          PackagePath="runtimes\win-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\qs_barcode_pdf_render_worker.exe') And !Exists('$(MSBuildThisFileDirectory)..\native\win-x64\qs_barcode_pdf_render_worker.exe')" />
     <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libqs_barcode_loader_sdk.so"
           Pack="true"
           PackagePath="runtimes\linux-x64\native\"
           Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libqs_barcode_loader_sdk.so') And !Exists('$(MSBuildThisFileDirectory)..\native\linux-x64\libqs_barcode_loader_sdk.so')" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\lib\libqs_barcode_loader_sdk.so"
+          Pack="true"
+          PackagePath="runtimes\linux-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\lib\libqs_barcode_loader_sdk.so') And !Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libqs_barcode_loader_sdk.so') And !Exists('$(MSBuildThisFileDirectory)..\native\linux-x64\libqs_barcode_loader_sdk.so')" />
     <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libpdfium.so"
           Pack="true"
           PackagePath="runtimes\linux-x64\native\"
           Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libpdfium.so') And !Exists('$(MSBuildThisFileDirectory)..\native\linux-x64\libpdfium.so')" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\qs_barcode_pdf_render_worker"
+          Pack="true"
+          PackagePath="runtimes\linux-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\qs_barcode_pdf_render_worker') And (Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libqs_barcode_loader_sdk.so') Or Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\lib\libqs_barcode_loader_sdk.so')) And !Exists('$(MSBuildThisFileDirectory)..\native\linux-x64\qs_barcode_pdf_render_worker')" />
     <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libqs_barcode_loader_sdk.dylib"
           Pack="true"
           PackagePath="runtimes\osx-x64\native\"
           Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libqs_barcode_loader_sdk.dylib') And !Exists('$(MSBuildThisFileDirectory)..\native\osx-x64\libqs_barcode_loader_sdk.dylib')" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\lib\libqs_barcode_loader_sdk.dylib"
+          Pack="true"
+          PackagePath="runtimes\osx-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\lib\libqs_barcode_loader_sdk.dylib') And !Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libqs_barcode_loader_sdk.dylib') And !Exists('$(MSBuildThisFileDirectory)..\native\osx-x64\libqs_barcode_loader_sdk.dylib')" />
     <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libpdfium.dylib"
           Pack="true"
           PackagePath="runtimes\osx-x64\native\"
           Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libpdfium.dylib') And !Exists('$(MSBuildThisFileDirectory)..\native\osx-x64\libpdfium.dylib')" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\qs_barcode_pdf_render_worker"
+          Pack="true"
+          PackagePath="runtimes\osx-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\qs_barcode_pdf_render_worker') And (Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\bin\libqs_barcode_loader_sdk.dylib') Or Exists('$(MSBuildThisFileDirectory)..\..\..\zig-out\lib\libqs_barcode_loader_sdk.dylib')) And !Exists('$(MSBuildThisFileDirectory)..\native\osx-x64\qs_barcode_pdf_render_worker')" />
   </ItemGroup>
 
   <ItemGroup>
@@ -73,6 +94,10 @@
           Pack="true"
           PackagePath="runtimes\win-x86\native\"
           Condition="Exists('$(MSBuildThisFileDirectory)..\native\win-x86\pdfium.dll')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\win-x86\qs_barcode_pdf_render_worker.exe"
+          Pack="true"
+          PackagePath="runtimes\win-x86\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\win-x86\qs_barcode_pdf_render_worker.exe')" />
     <None Include="$(MSBuildThisFileDirectory)..\native\win-x64\qs_barcode_loader_sdk.dll"
           Pack="true"
           PackagePath="runtimes\win-x64\native\"
@@ -81,6 +106,10 @@
           Pack="true"
           PackagePath="runtimes\win-x64\native\"
           Condition="Exists('$(MSBuildThisFileDirectory)..\native\win-x64\pdfium.dll')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\win-x64\qs_barcode_pdf_render_worker.exe"
+          Pack="true"
+          PackagePath="runtimes\win-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\win-x64\qs_barcode_pdf_render_worker.exe')" />
     <None Include="$(MSBuildThisFileDirectory)..\native\win-arm64\qs_barcode_loader_sdk.dll"
           Pack="true"
           PackagePath="runtimes\win-arm64\native\"
@@ -89,6 +118,10 @@
           Pack="true"
           PackagePath="runtimes\win-arm64\native\"
           Condition="Exists('$(MSBuildThisFileDirectory)..\native\win-arm64\pdfium.dll')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\win-arm64\qs_barcode_pdf_render_worker.exe"
+          Pack="true"
+          PackagePath="runtimes\win-arm64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\win-arm64\qs_barcode_pdf_render_worker.exe')" />
     <None Include="$(MSBuildThisFileDirectory)..\native\linux-x64\libqs_barcode_loader_sdk.so"
           Pack="true"
           PackagePath="runtimes\linux-x64\native\"
@@ -97,6 +130,10 @@
           Pack="true"
           PackagePath="runtimes\linux-x64\native\"
           Condition="Exists('$(MSBuildThisFileDirectory)..\native\linux-x64\libpdfium.so')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\linux-x64\qs_barcode_pdf_render_worker"
+          Pack="true"
+          PackagePath="runtimes\linux-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\linux-x64\qs_barcode_pdf_render_worker')" />
     <None Include="$(MSBuildThisFileDirectory)..\native\linux-arm64\libqs_barcode_loader_sdk.so"
           Pack="true"
           PackagePath="runtimes\linux-arm64\native\"
@@ -105,6 +142,10 @@
           Pack="true"
           PackagePath="runtimes\linux-arm64\native\"
           Condition="Exists('$(MSBuildThisFileDirectory)..\native\linux-arm64\libpdfium.so')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\linux-arm64\qs_barcode_pdf_render_worker"
+          Pack="true"
+          PackagePath="runtimes\linux-arm64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\linux-arm64\qs_barcode_pdf_render_worker')" />
     <None Include="$(MSBuildThisFileDirectory)..\native\osx-x64\libqs_barcode_loader_sdk.dylib"
           Pack="true"
           PackagePath="runtimes\osx-x64\native\"
@@ -113,6 +154,10 @@
           Pack="true"
           PackagePath="runtimes\osx-x64\native\"
           Condition="Exists('$(MSBuildThisFileDirectory)..\native\osx-x64\libpdfium.dylib')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\osx-x64\qs_barcode_pdf_render_worker"
+          Pack="true"
+          PackagePath="runtimes\osx-x64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\osx-x64\qs_barcode_pdf_render_worker')" />
     <None Include="$(MSBuildThisFileDirectory)..\native\osx-arm64\libqs_barcode_loader_sdk.dylib"
           Pack="true"
           PackagePath="runtimes\osx-arm64\native\"
@@ -121,5 +166,9 @@
           Pack="true"
           PackagePath="runtimes\osx-arm64\native\"
           Condition="Exists('$(MSBuildThisFileDirectory)..\native\osx-arm64\libpdfium.dylib')" />
+    <None Include="$(MSBuildThisFileDirectory)..\native\osx-arm64\qs_barcode_pdf_render_worker"
+          Pack="true"
+          PackagePath="runtimes\osx-arm64\native\"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\native\osx-arm64\qs_barcode_pdf_render_worker')" />
   </ItemGroup>
 </Project>

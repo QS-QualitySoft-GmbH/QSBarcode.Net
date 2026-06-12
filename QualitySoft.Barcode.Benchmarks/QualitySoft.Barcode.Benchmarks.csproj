@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QualitySoft.Barcode\QualitySoft.Barcode.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\QualitySoft.Barcode.Tests\fixtures\**\*.*" LinkBase="fixtures" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\QualitySoft.Barcode.Tests\qsbc.lic" Link="qsbc.lic" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\QualitySoft.Barcode.Tests\qsbc.lic')" />
+  </ItemGroup>
+</Project>

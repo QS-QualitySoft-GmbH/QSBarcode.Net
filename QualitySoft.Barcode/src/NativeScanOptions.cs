@@ -29,5 +29,5 @@ internal struct NativeScanOptions
     public uint MaxGap;
     public uint MaxHeight;
     public uint ChecksumFlags;
+    public uint ScanTimeoutMs;
 }
-

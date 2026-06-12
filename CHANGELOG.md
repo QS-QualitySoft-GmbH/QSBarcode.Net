@@ -1,6 +1,6 @@
 # QualitySoft.Barcode Changelog
 
-## 0.3.0
+## 6.0.0
 
 - Bumped the native QS Barcode engine license line from `5.0` to `6.0`.
 - New commercial license files for this engine line must be issued as

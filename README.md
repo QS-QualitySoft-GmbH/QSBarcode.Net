@@ -11,7 +11,7 @@ The SDK is distributed as the `QualitySoft.Barcode` NuGet package.
 
 The QS Barcode engine is built for document and image based barcode recognition
 in business applications. It can scan barcodes from image files, image streams,
-raw byte arrays and PDF documents.
+raw byte arrays, unmanaged memory pointers and PDF documents.
 
 Supported feature groups include:
 
@@ -37,19 +37,19 @@ NuGet package:
 Install with the .NET CLI:
 
 ```powershell
-dotnet add package QualitySoft.Barcode --version 0.3.0
+dotnet add package QualitySoft.Barcode --version 6.0.0
 ```
 
 Or add a `PackageReference` manually:
 
 ```xml
-<PackageReference Include="QualitySoft.Barcode" Version="0.3.0" />
+<PackageReference Include="QualitySoft.Barcode" Version="6.0.0" />
 ```
 
 Visual Studio Package Manager Console:
 
 ```powershell
-Install-Package QualitySoft.Barcode -Version 0.3.0
+Install-Package QualitySoft.Barcode -Version 6.0.0
 ```
 
 Product page, pricing and documentation:
@@ -82,6 +82,64 @@ Cancellation is observed before the native scan starts and while stream data is
 copied. Once native scanning is running, the native call is allowed to finish on
 its background scan thread; the returned task can still be canceled so request
 handling does not have to wait for native completion.
+
+To render the page that the native PDF/image loader would scan, use
+`RenderPage`. PDF input is rendered through the bundled native PDF render worker
+process when available:
+
+```csharp
+var page = reader.RenderPage("invoice.pdf", new BarcodeReaderOptions
+{
+    PageStart = 0,
+    Dpi = 300
+});
+
+File.WriteAllBytes("invoice-page-1.bmp", page.BmpBytes);
+Console.WriteLine($"{page.SourceFormat} page {page.PageIndex}: {page.Width}x{page.Height}");
+```
+
+## Unmanaged Memory Input
+
+Applications that already own encoded image or PDF bytes in unmanaged memory can
+scan without copying into a managed `byte[]` first. On modern targets such as
+.NET 6 and .NET 8, `ReadOnlySpan<byte>`, `ReadOnlyMemory<byte>` and
+`ReadAsync(ReadOnlyMemory<byte>, ...)` are also available.
+
+```csharp
+IntPtr bytes = GetNativeBuffer();
+int byteLength = GetNativeBufferLength();
+
+var results = reader.Read(bytes, byteLength, new BarcodeReaderOptions
+{
+    Symbologies = BarcodeSymbology.Default
+});
+```
+
+The pointer must reference an encoded image or document buffer, not raw pixels.
+The caller owns the memory and must keep it valid and unchanged for the whole
+call. For `ReadAsync(IntPtr, int, ...)`, keep the memory alive until the
+returned task completes.
+
+For already-rendered grayscale images, use the raw Gray8 API. Rows are one byte
+per pixel; pass `stride: 0` for tightly packed rows.
+
+```csharp
+byte[] grayPixels = RenderOrAcquireGray8();
+
+var results = reader.ReadRawGray8(
+    grayPixels,
+    width: 2480,
+    height: 3508,
+    stride: 0,
+    options: new BarcodeReaderOptions
+    {
+        Symbologies = BarcodeSymbology.DataMatrix | BarcodeSymbology.Code128
+    });
+```
+
+Pointer and async variants are available for native buffers. The caller owns the
+pixel memory and must keep it valid and unchanged until the call or returned
+task completes.
 
 ## Supported Barcode Types
 
@@ -133,6 +191,7 @@ page ranges is enough.
 | `ScanDistance` | `0` | Legacy engine scan-distance option. |
 | `MaxGap` | `0` | Maximum allowed gap for linear decoding. |
 | `ChecksumFlags` | `0` | Engine-specific checksum behavior. |
+| `ScanTimeoutMs` | `0` | Whole native scan timeout in milliseconds. `0` disables the timeout. |
 
 Orientation values:
 
@@ -180,7 +239,7 @@ Managed responsibilities:
 
 - .NET-friendly reader API
 - sync and async overloads
-- stream, file and byte-array handling
+- stream, file, byte-array and unmanaged pointer handling
 - strongly typed scan options
 - result objects with text, bytes, symbology, page and bounds metadata
 - dependency injection registration
@@ -260,7 +319,7 @@ For high-throughput services, configure reader-level concurrency explicitly:
 ```csharp
 services.AddQualitySoftBarcode(new BarcodeReaderSettings
 {
-    MaxConcurrentScans = Environment.ProcessorCount,
+    MaxConcurrentScans = 4,
     DefaultOptions = new BarcodeReaderOptions
     {
         Symbologies = BarcodeSymbology.Default,
@@ -274,6 +333,13 @@ services.AddQualitySoftBarcode(new BarcodeReaderSettings
 concurrently executing native scans per reader instance, so `ReadAsync` does not
 create unbounded dedicated native scan threads under load. `ReadAsync(byte[])`
 copies the supplied byte array before queuing native work.
+
+For PDF-heavy workloads, set `PdfRenderWorkerWarmupCount` to pre-start native
+PDF render worker processes. By default it is derived from `MaxConcurrentScans`
+and capped at four, which is the native worker pool size. Set it to `0` to keep
+lazy worker startup. This keeps PDFium isolated per worker process while
+allowing multiple PDF scans or page render requests to make progress
+concurrently.
 
 ## Native Runtime Health Check
 
@@ -295,9 +361,22 @@ else
 expected native library file name and probing locations. For custom deployment
 layouts, set `QSBC_NATIVE_LIBRARY` to an absolute path to the native loader.
 
+The diagnostics API also exposes native capabilities and PDF render worker
+warmup:
+
+```csharp
+var capabilities = BarcodeNativeLibrary.GetCapabilities();
+var pdfSupported = BarcodeNativeLibrary.IsFormatSupported(BarcodeImageFormat.Pdf);
+
+if (pdfSupported)
+{
+    BarcodeNativeLibrary.WarmUpPdfRenderWorkers(1);
+}
+```
+
 ## Release Notes
 
-### 0.3.0
+### 6.0.0
 
 - Rebuilt native runtime assets for Windows, Linux and macOS.
 - Hardened EC/PDF417 native decoding against invalid candidates and
@@ -411,6 +490,19 @@ It does not contain:
 - release signing material
 - license files for customers
 - internal packaging scripts
+
+## Distribution Model
+
+The public GitHub repository is source-only. Runtime binaries are not committed
+to Git. Official releases are delivered through the `QualitySoft.Barcode` NuGet
+package, which contains the matching signed native runtime assets under
+`runtimes/<rid>/native/` for Windows, Linux and macOS.
+
+For local wrapper development, place platform runtime assets under
+`native/<rid>/` if native smoke tests are needed. Keep customer license files
+local as `qsbc.lic`; they are intentionally ignored by Git. Without a license
+file the SDK can run in demo mode, which reports license status through
+`BarcodeLicense` and returns degraded demo results.
 
 ## Build The Wrapper
 

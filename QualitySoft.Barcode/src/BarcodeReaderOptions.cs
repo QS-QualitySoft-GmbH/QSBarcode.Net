@@ -119,6 +119,11 @@ public sealed class BarcodeReaderOptions
     public uint ChecksumFlags { get; set; }
 
     /// <summary>
+    /// Whole native scan timeout in milliseconds. Zero disables the timeout.
+    /// </summary>
+    public uint ScanTimeoutMs { get; set; }
+
+    /// <summary>
     /// Encoding used for <see cref="BarcodeResult.Text"/>. When unset, UTF-8 is tried first and legacy Windows-1252 is used as fallback.
     /// </summary>
     public Encoding? TextEncoding { get; set; }
@@ -151,6 +156,7 @@ public sealed class BarcodeReaderOptions
             MaxGap = MaxGap,
             MaxHeight = MaxHeight,
             ChecksumFlags = ChecksumFlags,
+            ScanTimeoutMs = ScanTimeoutMs,
             TextEncoding = TextEncoding
         };
     }
@@ -165,6 +171,15 @@ public sealed class BarcodeReaderOptions
         {
             throw new BarcodeScanException(initStatus, NativeMethods.PtrToString(NativeMethods.qsbc_loader_status_name(initStatus)));
         }
+
+        ApplyToNative(ref native);
+
+        return native;
+    }
+
+    internal void ApplyToNative(ref NativeScanOptions native)
+    {
+        Validate();
 
         native.StructSize = (uint)Marshal.SizeOf<NativeScanOptions>();
         native.Mask = (int)Symbologies;
@@ -188,8 +203,7 @@ public sealed class BarcodeReaderOptions
         native.MaxGap = MaxGap;
         native.MaxHeight = MaxHeight;
         native.ChecksumFlags = ChecksumFlags;
-
-        return native;
+        native.ScanTimeoutMs = ScanTimeoutMs;
     }
 
     internal void Validate()
