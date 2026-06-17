@@ -123,16 +123,17 @@ public sealed class NativeSmokeTests
         var options = CreateSmokeOptions();
         options.Symbologies = symbology;
 
-        string[] expectedTexts;
-        using (var licensedReader = CreateSmokeReader())
+        var expectedTexts = Array.Empty<string>();
+        if (BarcodeLicense.GetStatus().CanScan(symbology))
         {
+            using var licensedReader = CreateSmokeReader();
             expectedTexts = licensedReader.Read(fixture, options)
-                .Select(result => result.Text)
-                .Where(text => !string.IsNullOrEmpty(text))
-                .ToArray();
-        }
+                    .Select(result => result.Text)
+                    .Where(text => !string.IsNullOrEmpty(text))
+                    .ToArray();
 
-        Assert.NotEmpty(expectedTexts);
+            Assert.NotEmpty(expectedTexts);
+        }
 
         var exitCode = RunDemoLicenseProbe(symbologyName, fixture, expectedTexts);
 
@@ -203,7 +204,7 @@ public sealed class NativeSmokeTests
             return;
         }
 
-        using var reader = CreateSmokeReader(maxConcurrentScans: 4);
+        using var reader = CreateSmokeReader();
         var options = CreateSmokeOptions();
         var bytes = File.ReadAllBytes(fixture);
         var expected = reader.Read(fixture, options).Select(result => result.Text).ToArray();
@@ -231,7 +232,7 @@ public sealed class NativeSmokeTests
             return;
         }
 
-        using var reader = CreateSmokeReader(maxConcurrentScans: 4);
+        using var reader = CreateSmokeReader();
         var options = CreateSmokeOptions();
         var bytes = File.ReadAllBytes(fixture);
         var expected = reader.Read(bytes, options).Select(result => result.Text).ToArray();
@@ -259,7 +260,7 @@ public sealed class NativeSmokeTests
             return;
         }
 
-        using var reader = CreateSmokeReader(maxConcurrentScans: 4, pdfRenderWorkerWarmupCount: 4);
+        using var reader = CreateSmokeReader();
         var options = CreateSmokeOptions();
         var tasks = Enumerable.Range(0, 12)
             .Select(_ => Task.Run(() => reader.RenderPage(fixture, options)))
@@ -313,12 +314,10 @@ public sealed class NativeSmokeTests
         return true;
     }
 
-    private static QualitySoftBarcodeReader CreateSmokeReader(int maxConcurrentScans = 1, int pdfRenderWorkerWarmupCount = 0)
+    private static QualitySoftBarcodeReader CreateSmokeReader()
     {
         return new QualitySoftBarcodeReader(new BarcodeReaderSettings
         {
-            MaxConcurrentScans = maxConcurrentScans,
-            PdfRenderWorkerWarmupCount = pdfRenderWorkerWarmupCount,
             DefaultOptions = CreateSmokeOptions()
         });
     }

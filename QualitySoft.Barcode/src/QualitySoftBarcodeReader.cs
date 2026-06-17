@@ -17,8 +17,7 @@ public sealed class QualitySoftBarcodeReader : IBarcodeReader, IDisposable
     private const int MaxManagedResultPayloadBytes = 64 * 1024 * 1024;
     private static readonly NativeMethods.ResultCallback CollectCallback = CollectResult;
     private readonly BarcodeReaderOptions _defaultOptions;
-    private readonly NativeScanWorkerPool _nativeScanWorkers;
-    private readonly bool _copyInputBuffersForAsyncByteArray;
+    private readonly NativeScanScheduler _nativeScans = new NativeScanScheduler();
     private bool _disposed;
 
     /// <summary>
@@ -38,7 +37,7 @@ public sealed class QualitySoftBarcodeReader : IBarcodeReader, IDisposable
     }
 
     /// <summary>
-    /// Creates a reader with explicit managed defaults and native scan concurrency settings.
+    /// Creates a reader with explicit managed defaults.
     /// </summary>
     public QualitySoftBarcodeReader(BarcodeReaderSettings settings)
     {
@@ -50,14 +49,6 @@ public sealed class QualitySoftBarcodeReader : IBarcodeReader, IDisposable
         settings.Validate();
         var snapshot = settings.Clone();
         _defaultOptions = snapshot.DefaultOptions;
-        _nativeScanWorkers = new NativeScanWorkerPool(snapshot.MaxConcurrentScans, snapshot.NativeScanThreadStackSize);
-        _copyInputBuffersForAsyncByteArray = snapshot.CopyInputBuffersForAsyncByteArray;
-
-        var pdfRenderWorkerWarmupCount = snapshot.GetEffectivePdfRenderWorkerWarmupCount();
-        if (pdfRenderWorkerWarmupCount > 0)
-        {
-            BarcodeNativeLibrary.WarmUpPdfRenderWorkers((uint)pdfRenderWorkerWarmupCount);
-        }
     }
 
     public IReadOnlyList<BarcodeResult> Read(string path, BarcodeReaderOptions? options = null)
@@ -352,14 +343,7 @@ public sealed class QualitySoftBarcodeReader : IBarcodeReader, IDisposable
     {
         EnsureReadableBuffer(bytes, nameof(bytes));
         var effectiveOptions = GetOptionsSnapshot(options);
-        var input = bytes;
-        if (_copyInputBuffersForAsyncByteArray)
-        {
-            input = new byte[bytes.Length];
-            Buffer.BlockCopy(bytes, 0, input, 0, bytes.Length);
-        }
-
-        return RunNativeScanAsync(() => ReadBytesCore(input, effectiveOptions), cancellationToken);
+        return RunNativeScanAsync(() => ReadBytesCore(bytes, effectiveOptions), cancellationToken);
     }
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -391,12 +375,10 @@ public sealed class QualitySoftBarcodeReader : IBarcodeReader, IDisposable
 
     public Task<IReadOnlyList<BarcodeResult>> ReadRawGray8Async(byte[] pixels, int width, int height, int stride = 0, BarcodeReaderOptions? options = null, CancellationToken cancellationToken = default)
     {
-        var requiredLength = EnsureRawGray8Buffer(pixels, width, height, stride, nameof(pixels));
+        EnsureRawGray8Buffer(pixels, width, height, stride, nameof(pixels));
         var effectiveOptions = GetOptionsSnapshot(options);
-        var pixelsSnapshot = new byte[requiredLength];
-        Buffer.BlockCopy(pixels, 0, pixelsSnapshot, 0, pixelsSnapshot.Length);
 
-        return RunNativeScanAsync(() => ReadRawGray8(pixelsSnapshot, width, height, stride, effectiveOptions), cancellationToken);
+        return RunNativeScanAsync(() => ReadRawGray8(pixels, width, height, stride, effectiveOptions), cancellationToken);
     }
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -771,7 +753,7 @@ public sealed class QualitySoftBarcodeReader : IBarcodeReader, IDisposable
         }
 
         _disposed = true;
-        _nativeScanWorkers.Dispose();
+        _nativeScans.Dispose();
     }
 
     private BarcodeReaderOptions GetOptionsSnapshot(BarcodeReaderOptions? options)
@@ -925,7 +907,7 @@ public sealed class QualitySoftBarcodeReader : IBarcodeReader, IDisposable
             throw new ArgumentNullException(nameof(scan));
         }
 
-        return _nativeScanWorkers.Invoke(() =>
+        return _nativeScans.Invoke(() =>
         {
             ThrowIfDisposed();
             return scan();
@@ -944,7 +926,7 @@ public sealed class QualitySoftBarcodeReader : IBarcodeReader, IDisposable
             throw new ArgumentNullException(nameof(scan));
         }
 
-        return await _nativeScanWorkers.InvokeAsync(() =>
+        return await _nativeScans.InvokeAsync(() =>
         {
             ThrowIfDisposed();
             cancellationToken.ThrowIfCancellationRequested();

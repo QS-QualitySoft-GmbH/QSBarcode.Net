@@ -13,10 +13,11 @@ options, text encoding control and license-aware feature checks.
   unmanaged `IntPtr` encoded buffers
 - Raw pixel scanning for Gray8, RGB, BGR, RGBA and BGRA buffers
 - Sync and async APIs
-- Reusable native scan worker pool for high-throughput workloads
+- High-throughput async scans with no extra byte-array copy
 - PDF/image render APIs with BMP and Gray8 output
 - Format detection and page counting helpers
-- PDF rendering through bundled PDFium runtime assets
+- In-process PDF rendering through bundled PDFium runtime assets on one native
+  render thread
 - Windows, Linux and macOS native binaries in one NuGet package
 - License status helpers for demo and commercial feature gating
 - Strongly typed scan options for symbology masks, page ranges, DPI, threshold,
@@ -34,7 +35,7 @@ render PDFs themselves or process many documents concurrently:
 - `ScanTimeoutMs` for native scan time limits
 - `DetectFormat(...)` and `GetPageCount(...)` for diagnostics and routing
 - `RenderPage(...)`, `RenderPageGray8(...)` and `RenderPages(...)`
-- `BarcodeReaderSettings.MaxConcurrentScans` and PDF render worker warmup
+- serialized in-process PDFium rendering without an external renderer process
 - `BarcodeNativeLibrary.GetCapabilities()` and format support checks
 - richer demo/license helpers and `BarcodeScanException` license details
 
@@ -97,6 +98,12 @@ runtime assets. Applications normally do not need to copy native libraries
 manually when they restore or publish for one of the supported runtime
 identifiers.
 
+PDFium runs in-process. The native loader owns one dedicated render thread and
+serializes PDF document open, page render and close work through a bounded queue.
+Scan scheduling, result callbacks, file/stream I/O and application concurrency
+can still run around that queue. There is no separate PDF render executable and
+no PDF renderer path or warmup API to configure in 6.0.0.
+
 ## Quick Start
 
 ```csharp
@@ -120,6 +127,29 @@ foreach (var result in results)
     Console.WriteLine($"{result.Symbology}: {result.Text}");
 }
 ```
+
+## API Overview
+
+The public API is intentionally centered around `IBarcodeReader`. Applications
+can depend on the interface and use `QualitySoftBarcodeReader` directly or via
+dependency injection.
+
+| Area | API | Notes |
+| --- | --- | --- |
+| Encoded files | `Read(string)`, `Read(FileInfo)` | Scans PDF, TIFF and supported image files from disk. |
+| Encoded memory | `Read(byte[])`, `Read(ReadOnlySpan<byte>)`, `Read(ReadOnlyMemory<byte>)`, `Read(IntPtr, int)` | Input must be an encoded image or document buffer, not raw pixels. |
+| Streams | `Read(Stream)` | The stream is copied to memory before native scanning starts. |
+| Raw pixels | `ReadRawGray8(...)`, `ReadRawPixels(...)` | Use for pre-rendered image pipelines. Gray8 can scan without color conversion. |
+| Async scans | `ReadAsync(...)`, `ReadRawGray8Async(...)` | Runs native work asynchronously. Caller-owned buffers must remain unchanged until the task completes. |
+| Format routing | `DetectFormat(...)`, `GetPageCount(...)` | Useful for diagnostics, routing and multi-page workflows. |
+| Rendering | `RenderPage(...)`, `RenderPageGray8(...)`, `RenderPages(...)`, `RenderPageAsync(...)` | Returns BMP24 bytes or raw Gray8 pixels from the native loader. |
+| Options | `BarcodeReaderOptions` | Symbology mask, page range, DPI, threshold, orientation, timeout and tuning values. |
+| Reader settings | `BarcodeReaderSettings` | Managed default scan options. |
+| Licensing | `BarcodeLicense`, `BarcodeLicenseStatus`, `BarcodeScanException` | Runtime checks for demo/commercial feature gating and missing license diagnostics. |
+| Native diagnostics | `BarcodeNativeLibrary` | Loader ABI version, engine version, capabilities, format support and probing diagnostics. |
+
+The NuGet package is built with XML documentation enabled. IDEs therefore show
+the public API comments from `QualitySoft.Barcode.xml` during development.
 
 ## Dependency Injection
 
@@ -151,15 +181,12 @@ services.AddQualitySoftBarcode(options =>
 });
 ```
 
-For services that process many files concurrently, configure reader-level
-settings explicitly:
+For services that process many files concurrently, configure shared default scan
+options once:
 
 ```csharp
 services.AddQualitySoftBarcode(new BarcodeReaderSettings
 {
-    MaxConcurrentScans = Environment.ProcessorCount,
-    NativeScanThreadStackSize = BarcodeReaderSettings.DefaultNativeScanThreadStackSize,
-    CopyInputBuffersForAsyncByteArray = true,
     DefaultOptions = new BarcodeReaderOptions
     {
         Symbologies = BarcodeSymbology.Default,
@@ -186,24 +213,19 @@ The same source types are available in both sync and async form:
 - `byte[]`
 - `Stream`
 
-Async scans take a snapshot of the supplied `BarcodeReaderOptions` before the
-native work starts. Cancellation is observed before the native scan starts and
-while stream data is copied. Once native scanning is running, the native call is
-allowed to finish on its background scan thread; the returned task can still be
-canceled so application request handling does not have to wait for the native
-call to return.
+Async scans take a snapshot of the supplied `BarcodeReaderOptions` before native
+work starts. Cancellation is observed before the native scan starts and while
+stream data is copied. Once native scanning is running, the native call is
+allowed to finish.
 
-`QualitySoftBarcodeReader` is safe to register as a singleton. It limits the
-number of concurrently executing native scans per reader instance using a
-fixed native worker pool sized by `BarcodeReaderSettings.MaxConcurrentScans`.
-Each worker owns the larger native scan stack, so high-throughput callers avoid
-creating one large-stack thread per scan.
+`QualitySoftBarcodeReader` is safe to register as a singleton. It schedules
+native scans internally so many application requests can run concurrently while
+the native loader keeps PDFium rendering serialized.
 
-`ReadAsync(byte[])` copies the supplied byte array before queuing native work so
-caller-side buffer reuse cannot corrupt an in-flight scan. For high-throughput
-code that keeps buffers immutable until the task completes, prefer
-`ReadAsync(ReadOnlyMemory<byte>)`, `ReadAsync(IntPtr, int)`, or set
-`BarcodeReaderSettings.CopyInputBuffersForAsyncByteArray = false`.
+`ReadAsync(byte[])`, `ReadRawGray8Async(byte[])`, memory and pointer overloads
+do not make an extra defensive input copy. Keep caller-owned buffers valid and
+unchanged until the returned task completes. Use the `Stream` overload when the
+wrapper should own a memory copy before scanning.
 
 For raw image pipelines, use `ReadRawGray8(...)` for zero-copy grayscale input
 or `ReadRawPixels(...)` for RGB/BGR/RGBA/BGRA input. Non-Gray8 formats are
@@ -228,6 +250,18 @@ Run local performance checks with:
 ```powershell
 dotnet run -c Release --project sdk\dotnet\QualitySoft.Barcode.Benchmarks
 ```
+
+To compare wrapper overhead against direct native raw scanning on identical
+Gray8 pixels, run:
+
+```powershell
+dotnet run -c Release --project sdk\dotnet\QualitySoft.Barcode.Benchmarks -- --compare-raw
+```
+
+Large differences usually come from different scan masks or inputs, not from the
+managed wrapper. In production hot paths, prefer explicit `Symbologies` such as
+`Qr`, `DataMatrix`, `Code128` or a narrow combined mask instead of
+`NativeDefault`.
 
 ## Scan Options
 
@@ -313,6 +347,11 @@ The wrapper exposes the native scan mask through the `[Flags]`
 `NativeDefault` passes mask `0` to the native engine. `Default` is the managed
 common-use preset and excludes the more specialized `Pharma`, `Patch` and
 `Postal` families.
+
+`NativeDefault` is useful when intentionally preserving legacy native behavior,
+but it can be much slower than an explicit mask because the engine may search a
+broader set of barcode families. Benchmark wrapper and native calls with the
+same pixels and same option values before drawing performance conclusions.
 
 License status determines which optional feature groups are available at
 runtime. Applications can check `BarcodeLicense.GetStatus()` before enabling
@@ -499,6 +538,18 @@ layouts, set `QSBC_NATIVE_LIBRARY` to an absolute path to the native loader.
 
 ### 6.0.0
 
+- Added memory-first scan overloads for spans, memories and unmanaged encoded
+  buffers.
+- Added raw Gray8 and raw color pixel scanning for pre-rendered image pipelines.
+- Added PDF/image render APIs, including Gray8 render output and multi-page
+  helpers.
+- Added `DetectFormat(...)`, `GetPageCount(...)`, capabilities and diagnostics
+  helpers.
+- Added `ScanTimeoutMs` and high-throughput async scheduling.
+- Switched PDF rendering to the native loader's in-process single PDFium render
+  thread; no external PDF render executable is packaged.
+- Removed public PDF renderer, warmup, scan thread and async byte-array
+  copy-policy settings from the wrapper surface.
 - Rebuilt native runtime assets for Windows, Linux and macOS.
 - Hardened EC/PDF417 native decoding against invalid candidates and
   out-of-range codewords.
@@ -540,8 +591,7 @@ For Linux deployments, use glibc-based distributions for this package. Alpine
 Linux/musl is not included in the current package.
 
 If PDF input cannot be rendered, verify that the matching `pdfium` native asset
-and `qs_barcode_pdf_render_worker` are present in the publish output beside the
-QS Barcode loader library.
+is present in the publish output beside the QS Barcode loader library.
 
 ## License
 

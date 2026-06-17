@@ -40,9 +40,9 @@ surface for high-throughput document services and custom image pipelines:
 - page counting via `GetPageCount(...)` for PDFs and multi-page image formats
 - PDF/image rendering APIs: `RenderPage`, `RenderPageGray8`, `RenderPages` and
   async render overloads
-- a reusable native scan worker pool controlled by `BarcodeReaderSettings` so
-  each scan no longer needs a fresh large-stack thread
-- PDF render worker warmup for PDF-heavy workloads
+- high-throughput async scans without extra byte-array copies
+- in-process PDF rendering serialized through one dedicated native PDFium
+  render thread
 - native diagnostics, capabilities and format support helpers through
   `BarcodeNativeLibrary`
 - richer license helpers and `BarcodeScanException` details for production
@@ -100,15 +100,37 @@ foreach (var result in results)
 }
 ```
 
+## Public API Overview
+
+The stable managed entry point is `IBarcodeReader`. Use the interface in
+application services and construct `QualitySoftBarcodeReader` directly or
+through `AddQualitySoftBarcode()`.
+
+| Area | API | Use |
+| --- | --- | --- |
+| Encoded file input | `Read(string)`, `Read(FileInfo)` | Scan supported image files and PDFs from disk. |
+| Encoded memory input | `Read(byte[])`, `Read(ReadOnlySpan<byte>)`, `Read(ReadOnlyMemory<byte>)`, `Read(IntPtr, int)` | Scan encoded image/PDF buffers already held by the application. |
+| Stream input | `Read(Stream)` | Scan stream content after copying it into memory. |
+| Raw pixel input | `ReadRawGray8(...)`, `ReadRawPixels(...)` | Scan pre-rendered Gray8/RGB/BGR/RGBA/BGRA images. |
+| Async input | `ReadAsync(...)`, `ReadRawGray8Async(...)` | Runs native work asynchronously. Caller-owned buffers must remain unchanged until the task completes. |
+| Format and pages | `DetectFormat(...)`, `GetPageCount(...)` | Route work and inspect PDF or multi-page image inputs. |
+| Rendering | `RenderPage(...)`, `RenderPageGray8(...)`, `RenderPages(...)`, `RenderPageAsync(...)` | Render pages or frames through the same native loader used for scanning. |
+| Scan options | `BarcodeReaderOptions` | Configure symbology mask, page range, DPI, orientation, timeout and tuning. |
+| Reader settings | `BarcodeReaderSettings` | Configure managed default scan options. |
+| License checks | `BarcodeLicense`, `BarcodeLicenseStatus`, `BarcodeScanException` | Detect demo mode, commercial features and missing license capabilities. |
+| Diagnostics | `BarcodeNativeLibrary` | Read native ABI/engine versions, capabilities and probing diagnostics. |
+
+The NuGet package includes generated XML documentation beside the managed
+assemblies, so IntelliSense and API browsers can show the public API comments.
+
 Async scans take a snapshot of `BarcodeReaderOptions` before native work starts.
 Cancellation is observed before the native scan starts and while stream data is
 copied. Once native scanning is running, the native call is allowed to finish on
-its background scan thread; the returned task can still be canceled so request
-handling does not have to wait for native completion.
+its native path.
 
 To render the page that the native PDF/image loader would scan, use
-`RenderPage`. PDF input is rendered through the bundled native PDF render worker
-process when available:
+`RenderPage`. PDF input is rendered in-process by the native PDFium runtime on
+the loader's single render thread:
 
 ```csharp
 var page = reader.RenderPage("invoice.pdf", new BarcodeReaderOptions
@@ -183,6 +205,13 @@ The wrapper exposes the native scan mask through the `[Flags]`
 common-use preset and excludes the more specialized `Pharma`, `Patch` and
 `Postal` families. Exact feature availability can depend on the installed QS
 Barcode license.
+
+For throughput-sensitive code, set an explicit mask instead of relying on
+`NativeDefault`. The native default can search a much broader set of formats and
+may dominate total scan time. Wrapper/native comparisons should always use the
+same rendered pixels and the same `Symbologies`, DPI, page range and tuning
+options; with identical raw Gray8 input the managed wrapper is not expected to
+add material overhead compared with calling the native loader directly.
 
 ## Reader Settings
 
@@ -271,12 +300,24 @@ Managed responsibilities:
 Native responsibilities:
 
 - barcode detection and decoding
-- PDF rendering through PDFium
+- PDF rendering through PDFium on one dedicated render thread
 - platform-specific performance work
 - native license evaluation and feature enforcement
 
 This keeps application code simple while allowing the scanner to use optimized
 native code per platform.
+
+### PDF Rendering Pipeline
+
+PDFium is used in-process. The native loader owns a bounded render queue and a
+single dedicated render thread. All PDFium document open, page render and close
+work is serialized there, while scan scheduling, decoded-result callbacks,
+stream/file I/O, image preprocessing and application-level work can run in
+parallel around it.
+
+No separate PDF render executable is built, packaged or configured in 6.0.0.
+Applications should not configure a PDF renderer path or call PDF render warmup
+helpers; those APIs were removed with the native ABI 2.0.0 loader surface.
 
 ## Supported .NET Targets
 
@@ -337,12 +378,11 @@ services.AddQualitySoftBarcode(options =>
 });
 ```
 
-For high-throughput services, configure reader-level concurrency explicitly:
+For high-throughput services, configure shared default scan options once:
 
 ```csharp
 services.AddQualitySoftBarcode(new BarcodeReaderSettings
 {
-    MaxConcurrentScans = 4,
     DefaultOptions = new BarcodeReaderOptions
     {
         Symbologies = BarcodeSymbology.Default,
@@ -352,17 +392,14 @@ services.AddQualitySoftBarcode(new BarcodeReaderSettings
 });
 ```
 
-`QualitySoftBarcodeReader` is safe to register as a singleton. It limits
-concurrently executing native scans per reader instance, so `ReadAsync` does not
-create unbounded dedicated native scan threads under load. `ReadAsync(byte[])`
-copies the supplied byte array before queuing native work.
+`QualitySoftBarcodeReader` is safe to register as a singleton. It schedules
+native scans internally so many application requests can run concurrently while
+the native loader keeps PDFium rendering serialized.
 
-For PDF-heavy workloads, set `PdfRenderWorkerWarmupCount` to pre-start native
-PDF render worker processes. By default it is derived from `MaxConcurrentScans`
-and capped at four, which is the native worker pool size. Set it to `0` to keep
-lazy worker startup. This keeps PDFium isolated per worker process while
-allowing multiple PDF scans or page render requests to make progress
-concurrently.
+`ReadAsync(byte[])`, `ReadRawGray8Async(byte[])`, memory and pointer overloads
+do not make an extra defensive input copy. Keep caller-owned buffers valid and
+unchanged until the returned task completes. Use the `Stream` overload when the
+wrapper should own a memory copy before scanning.
 
 ## Native Runtime Health Check
 
@@ -384,17 +421,11 @@ else
 expected native library file name and probing locations. For custom deployment
 layouts, set `QSBC_NATIVE_LIBRARY` to an absolute path to the native loader.
 
-The diagnostics API also exposes native capabilities and PDF render worker
-warmup:
+The diagnostics API also exposes native capabilities:
 
 ```csharp
 var capabilities = BarcodeNativeLibrary.GetCapabilities();
 var pdfSupported = BarcodeNativeLibrary.IsFormatSupported(BarcodeImageFormat.Pdf);
-
-if (pdfSupported)
-{
-    BarcodeNativeLibrary.WarmUpPdfRenderWorkers(1);
-}
 ```
 
 ## Release Notes
@@ -408,8 +439,11 @@ if (pdfSupported)
   render helpers.
 - Added `DetectFormat(...)`, `GetPageCount(...)`, native capabilities and public
   diagnostics helpers.
-- Added `ScanTimeoutMs` and a reusable native scan worker pool for
-  high-throughput and PDF-heavy workloads.
+- Added `ScanTimeoutMs` and high-throughput async scheduling.
+- Replaced the external PDF render process with in-process PDFium rendering
+  owned by the native loader.
+- Removed public PDF renderer configuration, warmup, scan thread and async
+  byte-array copy-policy settings from the wrapper surface.
 - Added explicit demo-mode behavior for 1D and 2D payloads plus richer license
   exception details.
 - Rebuilt native runtime assets for Windows, Linux and macOS.

@@ -1,15 +1,55 @@
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using QualitySoft.Barcode;
 
-BenchmarkRunner.Run<BarcodeReaderBenchmarks>();
+if (args.Contains("--compare-raw", StringComparer.OrdinalIgnoreCase))
+{
+    RawComparison.Run();
+    return;
+}
+
+BenchmarkRunner.Run<BarcodeReaderBenchmarks>(BenchmarkConfig.Create());
+
+internal static class BenchmarkConfig
+{
+    public static IConfig Create()
+    {
+        var artifactsPath = Path.Combine(FindSdkDotnetRoot(), "BenchmarkDotNet.Artifacts");
+        Directory.CreateDirectory(Path.Combine(artifactsPath, "results"));
+        return ManualConfig.Create(DefaultConfig.Instance).WithArtifactsPath(artifactsPath);
+    }
+
+    private static string FindSdkDotnetRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null)
+        {
+            var candidate = Path.Combine(directory.FullName, "sdk", "dotnet");
+            if (Directory.Exists(candidate))
+            {
+                return candidate;
+            }
+
+            if (string.Equals(directory.Name, "dotnet", StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(directory.Parent?.Name, "sdk", StringComparison.OrdinalIgnoreCase))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        return AppContext.BaseDirectory;
+    }
+}
 
 [MemoryDiagnoser]
 public class BarcodeReaderBenchmarks
 {
     private QualitySoftBarcodeReader _reader = null!;
-    private QualitySoftBarcodeReader _unsafeAsyncReader = null!;
     private string _fixture = string.Empty;
     private string _pdfFixture = string.Empty;
     private byte[] _fixtureBytes = Array.Empty<byte>();
@@ -17,6 +57,7 @@ public class BarcodeReaderBenchmarks
     private int _grayWidth;
     private int _grayHeight;
     private BarcodeReaderOptions _options = null!;
+    private BarcodeReaderOptions _qrOptions = null!;
 
     [GlobalSetup]
     public void Setup()
@@ -34,18 +75,11 @@ public class BarcodeReaderBenchmarks
             MinLength = 1,
             ScanTimeoutMs = 15_000
         };
+        _qrOptions = _options.Clone();
+        _qrOptions.Symbologies = BarcodeSymbology.Qr;
 
         _reader = new QualitySoftBarcodeReader(new BarcodeReaderSettings
         {
-            MaxConcurrentScans = 4,
-            PdfRenderWorkerWarmupCount = 4,
-            DefaultOptions = _options
-        });
-        _unsafeAsyncReader = new QualitySoftBarcodeReader(new BarcodeReaderSettings
-        {
-            MaxConcurrentScans = 4,
-            PdfRenderWorkerWarmupCount = 4,
-            CopyInputBuffersForAsyncByteArray = false,
             DefaultOptions = _options
         });
 
@@ -59,7 +93,6 @@ public class BarcodeReaderBenchmarks
     public void Cleanup()
     {
         _reader.Dispose();
-        _unsafeAsyncReader.Dispose();
     }
 
     [Benchmark]
@@ -75,15 +108,9 @@ public class BarcodeReaderBenchmarks
     }
 
     [Benchmark]
-    public async Task<IReadOnlyList<BarcodeResult>> ReadByteArrayAsyncWithDefensiveCopy()
+    public async Task<IReadOnlyList<BarcodeResult>> ReadByteArrayAsync()
     {
         return await _reader.ReadAsync(_fixtureBytes, _options);
-    }
-
-    [Benchmark]
-    public async Task<IReadOnlyList<BarcodeResult>> ReadByteArrayAsyncWithoutDefensiveCopy()
-    {
-        return await _unsafeAsyncReader.ReadAsync(_fixtureBytes, _options);
     }
 
     [Benchmark]
@@ -107,6 +134,36 @@ public class BarcodeReaderBenchmarks
     }
 
     [Benchmark]
+    public IReadOnlyList<BarcodeResult> ReadRawGray8Qr()
+    {
+        return _reader.ReadRawGray8(_grayPixels, _grayWidth, _grayHeight, _grayWidth, _qrOptions);
+    }
+
+    [Benchmark]
+    public int DirectNativeRawGray8CountOnly()
+    {
+        return DirectNative.scan_gray8_count_only(_grayPixels, _grayWidth, _grayHeight, _grayWidth, _options);
+    }
+
+    [Benchmark]
+    public int DirectNativeRawGray8CollectText()
+    {
+        return DirectNative.scan_gray8_collect_text(_grayPixels, _grayWidth, _grayHeight, _grayWidth, _options);
+    }
+
+    [Benchmark]
+    public int DirectNativeRawGray8QrCountOnly()
+    {
+        return DirectNative.scan_gray8_count_only(_grayPixels, _grayWidth, _grayHeight, _grayWidth, _qrOptions);
+    }
+
+    [Benchmark]
+    public int DirectNativeRawGray8QrCollectText()
+    {
+        return DirectNative.scan_gray8_collect_text(_grayPixels, _grayWidth, _grayHeight, _grayWidth, _qrOptions);
+    }
+
+    [Benchmark]
     public BarcodeRenderedImage RenderPdfPageGray8()
     {
         return _reader.RenderPageGray8(_pdfFixture, _options);
@@ -122,7 +179,7 @@ public class BarcodeReaderBenchmarks
         await Task.WhenAll(tasks);
     }
 
-    private static void ApplyLocalLicense()
+    internal static void ApplyLocalLicense()
     {
         var configured = Environment.GetEnvironmentVariable("QSBC_LICENSE_FILE");
         if (!string.IsNullOrWhiteSpace(configured) && File.Exists(configured))
@@ -141,7 +198,7 @@ public class BarcodeReaderBenchmarks
         }
     }
 
-    private static string FindFixture(params string[] names)
+    internal static string FindFixture(params string[] names)
     {
         foreach (var root in SearchRoots())
         {
@@ -159,7 +216,7 @@ public class BarcodeReaderBenchmarks
         throw new InvalidOperationException("Benchmark fixture not found. Copy fixtures into the benchmark output or run from the repository.");
     }
 
-    private static IEnumerable<string> SearchRoots()
+    internal static IEnumerable<string> SearchRoots()
     {
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -183,5 +240,243 @@ public class BarcodeReaderBenchmarks
 
             directory = directory.Parent;
         }
+    }
+}
+
+internal static class RawComparison
+{
+    public static void Run()
+    {
+        BarcodeReaderBenchmarks.ApplyLocalLicense();
+
+        var fixture = BarcodeReaderBenchmarks.FindFixture("QR_Codes.jpg", "BarDM.tif", "linear_dm.tif", "labels128_dm.jpg");
+        var options = new BarcodeReaderOptions
+        {
+            PageStart = 0,
+            PageCount = 1,
+            Dpi = 150,
+            MinLength = 1,
+            ScanTimeoutMs = 15_000
+        };
+        var qrOptions = options.Clone();
+        qrOptions.Symbologies = BarcodeSymbology.Qr;
+
+        using var reader = new QualitySoftBarcodeReader(new BarcodeReaderSettings
+        {
+            DefaultOptions = options
+        });
+
+        var rendered = reader.RenderPageGray8(fixture, options);
+        var pixels = rendered.Bytes;
+        var width = checked((int)rendered.Width);
+        var height = checked((int)rendered.Height);
+        var stride = checked((int)rendered.Stride);
+
+        Console.WriteLine("fixture=" + fixture);
+        Console.WriteLine("gray=" + width + "x" + height + " stride=" + stride + " bytes=" + pixels.Length);
+        Console.WriteLine();
+
+        Measure("wrapper raw NativeDefault", () => reader.ReadRawGray8(pixels, width, height, stride, options).Count);
+        Measure("direct raw NativeDefault count-only", () => DirectNative.scan_gray8_count_only(pixels, width, height, stride, options));
+        Measure("direct raw NativeDefault collect-text", () => DirectNative.scan_gray8_collect_text(pixels, width, height, stride, options));
+        Measure("wrapper raw QR", () => reader.ReadRawGray8(pixels, width, height, stride, qrOptions).Count);
+        Measure("direct raw QR count-only", () => DirectNative.scan_gray8_count_only(pixels, width, height, stride, qrOptions));
+        Measure("direct raw QR collect-text", () => DirectNative.scan_gray8_collect_text(pixels, width, height, stride, qrOptions));
+    }
+
+    private static void Measure(string name, Func<int> action)
+    {
+        const int warmup = 1;
+        const int iterations = 5;
+
+        for (var i = 0; i < warmup; i++)
+        {
+            _ = action();
+        }
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        var times = new double[iterations];
+        var result = 0;
+        for (var i = 0; i < iterations; i++)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            result = action();
+            stopwatch.Stop();
+            times[i] = stopwatch.Elapsed.TotalMilliseconds;
+        }
+
+        Console.WriteLine($"{name,-38} avg={times.Average(),8:F2} ms min={times.Min(),8:F2} ms max={times.Max(),8:F2} ms result={result}");
+    }
+}
+
+internal static class DirectNative
+{
+    private static readonly NativeMethods.ResultCallback CountOnlyCallback = count_only_callback;
+    private static readonly NativeMethods.ResultCallback CollectTextCallback = collect_text_callback;
+
+    public static int scan_gray8_count_only(byte[] pixels, int width, int height, int stride, BarcodeReaderOptions options)
+    {
+        return run_on_native_stack(() => scan_gray8_count_only_core(pixels, width, height, stride, options));
+    }
+
+    public static int scan_gray8_collect_text(byte[] pixels, int width, int height, int stride, BarcodeReaderOptions options)
+    {
+        return run_on_native_stack(() => scan_gray8_collect_text_core(pixels, width, height, stride, options));
+    }
+
+    private static int scan_gray8_count_only_core(byte[] pixels, int width, int height, int stride, BarcodeReaderOptions options)
+    {
+        var nativeOptions = create_options(options);
+        var state = new DirectScanState();
+        var stateHandle = GCHandle.Alloc(state);
+        var pixelsHandle = GCHandle.Alloc(pixels, GCHandleType.Pinned);
+        try
+        {
+            var status = NativeMethods.qsbc_loader_scan_gray8_cb_with_options(
+                pixelsHandle.AddrOfPinnedObject(),
+                checked((uint)width),
+                checked((uint)height),
+                checked((uint)stride),
+                ref nativeOptions,
+                CountOnlyCallback,
+                GCHandle.ToIntPtr(stateHandle));
+
+            if (status < 0)
+            {
+                throw new InvalidOperationException("Native scan failed with status " + status + ".");
+            }
+
+            return state.Count;
+        }
+        finally
+        {
+            pixelsHandle.Free();
+            stateHandle.Free();
+        }
+    }
+
+    private static int scan_gray8_collect_text_core(byte[] pixels, int width, int height, int stride, BarcodeReaderOptions options)
+    {
+        var nativeOptions = create_options(options);
+        var state = new DirectScanState();
+        var stateHandle = GCHandle.Alloc(state);
+        var pixelsHandle = GCHandle.Alloc(pixels, GCHandleType.Pinned);
+        try
+        {
+            var status = NativeMethods.qsbc_loader_scan_gray8_cb_with_options(
+                pixelsHandle.AddrOfPinnedObject(),
+                checked((uint)width),
+                checked((uint)height),
+                checked((uint)stride),
+                ref nativeOptions,
+                CollectTextCallback,
+                GCHandle.ToIntPtr(stateHandle));
+
+            if (status < 0)
+            {
+                throw new InvalidOperationException("Native scan failed with status " + status + ".");
+            }
+
+            return state.Count + state.TextLength;
+        }
+        finally
+        {
+            pixelsHandle.Free();
+            stateHandle.Free();
+        }
+    }
+
+    private static T run_on_native_stack<T>(Func<T> action)
+    {
+        const int nativeBenchmarkStackSize = 16 * 1024 * 1024;
+        T? result = default;
+        Exception? exception = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                result = action();
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+            }
+        }, nativeBenchmarkStackSize)
+        {
+            IsBackground = true,
+            Name = "QS Barcode direct benchmark scan"
+        };
+        thread.Start();
+        thread.Join();
+
+        if (exception != null)
+        {
+            throw exception;
+        }
+
+        return result!;
+    }
+
+    private static NativeScanOptions create_options(BarcodeReaderOptions options)
+    {
+        var nativeOptions = new NativeScanOptions();
+        var status = NativeMethods.qsbc_loader_scan_options_init(ref nativeOptions);
+        if (status < 0)
+        {
+            throw new InvalidOperationException("Native options init failed with status " + status + ".");
+        }
+
+        nativeOptions.StructSize = (uint)Marshal.SizeOf<NativeScanOptions>();
+        nativeOptions.Mask = (int)options.Symbologies;
+        nativeOptions.MinLength = options.MinLength == 0 ? 1 : options.MinLength;
+        nativeOptions.Flags = (uint)options.Flags;
+        nativeOptions.PageStart = options.PageStart;
+        nativeOptions.PageCount = options.PageCount;
+        nativeOptions.Dpi = options.Dpi;
+        nativeOptions.Reserved0 = options.DataMatrixFinderAngleTolerance;
+        nativeOptions.Reserved1 = options.DataMatrixOverlapPercent;
+        nativeOptions.Reserved2 = options.DataMatrixMaxLineCandidates;
+        nativeOptions.Threshold = options.Threshold;
+        nativeOptions.Orientation = (uint)options.Orientation;
+        nativeOptions.MaxSkewDegrees = options.MaxSkewDegrees;
+        nativeOptions.LightMargin = options.LightMargin;
+        nativeOptions.ScanDistanceBarcode = options.ScanDistanceBarcode;
+        nativeOptions.Tolerance = options.Tolerance;
+        nativeOptions.MinHeight = options.MinHeight;
+        nativeOptions.Percent = options.Percent;
+        nativeOptions.ScanDistance = options.ScanDistance;
+        nativeOptions.MaxGap = options.MaxGap;
+        nativeOptions.MaxHeight = options.MaxHeight;
+        nativeOptions.ChecksumFlags = options.ChecksumFlags;
+        nativeOptions.ScanTimeoutMs = options.ScanTimeoutMs;
+        return nativeOptions;
+    }
+
+    private static int count_only_callback(IntPtr result, IntPtr userData)
+    {
+        var state = (DirectScanState)GCHandle.FromIntPtr(userData).Target!;
+        state.Count++;
+        return 0;
+    }
+
+    private static int collect_text_callback(IntPtr result, IntPtr userData)
+    {
+        var state = (DirectScanState)GCHandle.FromIntPtr(userData).Target!;
+        var native = Marshal.PtrToStructure<NativeBarcodeResult>(result);
+        state.Count++;
+        if (native.TextLen > 0)
+        {
+            state.TextLength += Marshal.PtrToStringUTF8(native.Text, native.TextLen)?.Length ?? 0;
+        }
+        return 0;
+    }
+
+    private sealed class DirectScanState
+    {
+        public int Count;
+        public int TextLength;
     }
 }

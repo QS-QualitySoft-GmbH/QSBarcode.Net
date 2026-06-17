@@ -88,18 +88,6 @@ public static class BarcodeNativeLibrary
     }
 
     /// <summary>
-    /// Starts or warms native PDF render worker processes used by PDF rendering.
-    /// </summary>
-    public static void WarmUpPdfRenderWorkers(uint requestedWorkers = 1)
-    {
-        var status = NativeMethods.Invoke(() => NativeMethods.qsbc_loader_warmup_pdf_render_workers(requestedWorkers));
-        if (status < 0)
-        {
-            throw new BarcodeScanException(status, GetStatusName(status));
-        }
-    }
-
-    /// <summary>
     /// Checks whether the native runtime can be loaded by the current process.
     /// </summary>
     public static bool TryGetVersion(out string? version, out string? error)

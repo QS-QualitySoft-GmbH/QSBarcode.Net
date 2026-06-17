@@ -19,9 +19,6 @@ internal static class NativeMethods
     private const string LinuxLibraryFileName = "libqs_barcode_loader_sdk.so";
     private const string MacLibraryFileName = "libqs_barcode_loader_sdk.dylib";
     private const string NativeLibraryEnvironmentVariable = "QSBC_NATIVE_LIBRARY";
-    private const string PdfRenderWorkerEnvironmentVariable = "QSBC_PDF_RENDER_WORKER";
-    private const string WindowsPdfRenderWorkerFileName = "qs_barcode_pdf_render_worker.exe";
-    private const string UnixPdfRenderWorkerFileName = "qs_barcode_pdf_render_worker";
     private const int LocalDevelopmentSearchDepth = 16;
 
     static NativeMethods()
@@ -29,7 +26,6 @@ internal static class NativeMethods
 #if NETCOREAPP3_1_OR_GREATER || NET5_0_OR_GREATER
         NativeLibrary.SetDllImportResolver(typeof(NativeMethods).Assembly, ResolveNativeLibrary);
 #endif
-        ConfigurePdfRenderWorker();
     }
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
@@ -49,12 +45,6 @@ internal static class NativeMethods
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr qsbc_loader_engine_version_string();
-
-    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern int qsbc_loader_set_pdf_render_worker_path(byte[] path);
-
-    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern int qsbc_loader_warmup_pdf_render_workers(uint requestedWorkers);
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern uint qsbc_loader_capabilities();
@@ -206,73 +196,6 @@ internal static class NativeMethods
         var result = new byte[text.Length + 1];
         Buffer.BlockCopy(text, 0, result, 0, text.Length);
         return result;
-    }
-
-    private static void ConfigurePdfRenderWorker()
-    {
-        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(PdfRenderWorkerEnvironmentVariable)))
-        {
-            return;
-        }
-
-        foreach (var candidate in GetPdfRenderWorkerCandidates())
-        {
-            if (!string.IsNullOrWhiteSpace(candidate) && File.Exists(candidate))
-            {
-                var fullPath = Path.GetFullPath(candidate);
-                Environment.SetEnvironmentVariable(PdfRenderWorkerEnvironmentVariable, fullPath);
-                TrySetPdfRenderWorkerPath(fullPath);
-                return;
-            }
-        }
-    }
-
-    private static void TrySetPdfRenderWorkerPath(string path)
-    {
-        try
-        {
-            qsbc_loader_set_pdf_render_worker_path(ToNullTerminatedUtf8(path));
-        }
-        catch (Exception ex) when (IsNativeBindingException(ex))
-        {
-        }
-    }
-
-    internal static string[] GetPdfRenderWorkerCandidates()
-    {
-        var configured = Environment.GetEnvironmentVariable(PdfRenderWorkerEnvironmentVariable);
-        var baseDirectory = AppContext.BaseDirectory;
-        var workerFileName = GetPdfRenderWorkerFileName();
-        var runtimeIdentifier = GetRuntimeIdentifier();
-
-        var candidates = new List<string>();
-        if (!string.IsNullOrWhiteSpace(configured))
-        {
-            candidates.Add(configured);
-        }
-
-        candidates.Add(Path.Combine(baseDirectory, workerFileName));
-        candidates.Add(Path.Combine(baseDirectory, "runtimes", runtimeIdentifier, "native", workerFileName));
-        candidates.Add(Path.Combine(Environment.CurrentDirectory, workerFileName));
-        candidates.Add(FindArtifactsNativeFile(baseDirectory, workerFileName));
-        candidates.Add(FindArtifactsNativeFile(Environment.CurrentDirectory, workerFileName));
-        candidates.Add(FindSdkNativeFile(baseDirectory, workerFileName));
-        candidates.Add(FindSdkNativeFile(Environment.CurrentDirectory, workerFileName));
-        candidates.Add(FindRepoNativeFile(baseDirectory, workerFileName));
-        candidates.Add(FindRepoNativeFile(Environment.CurrentDirectory, workerFileName));
-
-        return candidates.ToArray();
-    }
-
-    internal static string GetPdfRenderWorkerFileName()
-    {
-#if NETSTANDARD2_0_OR_GREATER || NETCOREAPP3_1_OR_GREATER || NET5_0_OR_GREATER
-        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? WindowsPdfRenderWorkerFileName
-            : UnixPdfRenderWorkerFileName;
-#else
-        return WindowsPdfRenderWorkerFileName;
-#endif
     }
 
 #if NETCOREAPP3_1_OR_GREATER || NET5_0_OR_GREATER

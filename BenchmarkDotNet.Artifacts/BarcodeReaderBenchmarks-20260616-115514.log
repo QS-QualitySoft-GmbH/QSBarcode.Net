@@ -1,0 +1,343 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 13 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+Unable to find .sln or .csproj file. Will use current directory C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode to search for project file. If you don't use .sln file on purpose it should not be a problem.
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423\obj\Release\net8.0/" /p:OutDir="C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423\bin\Release\net8.0/" /p:OutputPath="C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423\bin\Release\net8.0/" in C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423
+// command took 2.37 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423\obj\Release\net8.0/" /p:OutDir="C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423\bin\Release\net8.0/" /p:OutputPath="C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423\bin\Release\net8.0/" --output "C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423\bin\Release\net8.0/" in C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423
+// command took 8.58 sec and exited with 0
+// ***** Done, took 00:00:11 (11.23 sec)   *****
+// Found 13 benchmarks:
+//   BarcodeReaderBenchmarks.ReadFile: DefaultJob
+//   BarcodeReaderBenchmarks.ReadByteArray: DefaultJob
+//   BarcodeReaderBenchmarks.ReadByteArrayAsyncWithDefensiveCopy: DefaultJob
+//   BarcodeReaderBenchmarks.ReadByteArrayAsyncWithoutDefensiveCopy: DefaultJob
+//   BarcodeReaderBenchmarks.ReadPointer: DefaultJob
+//   BarcodeReaderBenchmarks.ReadRawGray8: DefaultJob
+//   BarcodeReaderBenchmarks.ReadRawGray8Qr: DefaultJob
+//   BarcodeReaderBenchmarks.DirectNativeRawGray8CountOnly: DefaultJob
+//   BarcodeReaderBenchmarks.DirectNativeRawGray8CollectText: DefaultJob
+//   BarcodeReaderBenchmarks.DirectNativeRawGray8QrCountOnly: DefaultJob
+//   BarcodeReaderBenchmarks.DirectNativeRawGray8QrCollectText: DefaultJob
+//   BarcodeReaderBenchmarks.RenderPdfPageGray8: DefaultJob
+//   BarcodeReaderBenchmarks.ParallelPdfRender: DefaultJob
+
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: Höchstleistung)
+// **************************
+// Benchmark: BarcodeReaderBenchmarks.ReadFile: DefaultJob
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet e93666bf-d30c-4ccf-9e5f-57f7a8cf3423.dll --anonymousPipes 7124 1424 --benchmarkName BarcodeReaderBenchmarks.ReadFile --job Default --benchmarkId 0 in C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423\bin\Release\net8.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: DefaultJob
+
+OverheadJitting  1: 1 op, 242900.00 ns, 242.9000 us/op
+WorkloadJitting  1: 1 op, 713577900.00 ns, 713.5779 ms/op
+
+OverheadJitting  2: 1 op, 300.00 ns, 300.0000 ns/op
+WorkloadJitting  2: 1 op, 695712400.00 ns, 695.7124 ms/op
+
+WorkloadWarmup   1: 1 op, 696580800.00 ns, 696.5808 ms/op
+WorkloadWarmup   2: 1 op, 710660700.00 ns, 710.6607 ms/op
+WorkloadWarmup   3: 1 op, 690055100.00 ns, 690.0551 ms/op
+WorkloadWarmup   4: 1 op, 703694000.00 ns, 703.6940 ms/op
+WorkloadWarmup   5: 1 op, 721527900.00 ns, 721.5279 ms/op
+WorkloadWarmup   6: 1 op, 695096500.00 ns, 695.0965 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 1 op, 695909000.00 ns, 695.9090 ms/op
+WorkloadActual   2: 1 op, 706980800.00 ns, 706.9808 ms/op
+WorkloadActual   3: 1 op, 712355100.00 ns, 712.3551 ms/op
+WorkloadActual   4: 1 op, 704718100.00 ns, 704.7181 ms/op
+WorkloadActual   5: 1 op, 698691400.00 ns, 698.6914 ms/op
+WorkloadActual   6: 1 op, 698760300.00 ns, 698.7603 ms/op
+WorkloadActual   7: 1 op, 695623400.00 ns, 695.6234 ms/op
+WorkloadActual   8: 1 op, 696568100.00 ns, 696.5681 ms/op
+WorkloadActual   9: 1 op, 696828100.00 ns, 696.8281 ms/op
+WorkloadActual  10: 1 op, 703457700.00 ns, 703.4577 ms/op
+WorkloadActual  11: 1 op, 710751200.00 ns, 710.7512 ms/op
+WorkloadActual  12: 1 op, 702881700.00 ns, 702.8817 ms/op
+WorkloadActual  13: 1 op, 697718100.00 ns, 697.7181 ms/op
+WorkloadActual  14: 1 op, 732072800.00 ns, 732.0728 ms/op
+WorkloadActual  15: 1 op, 694584800.00 ns, 694.5848 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 1 op, 695909000.00 ns, 695.9090 ms/op
+WorkloadResult   2: 1 op, 706980800.00 ns, 706.9808 ms/op
+WorkloadResult   3: 1 op, 712355100.00 ns, 712.3551 ms/op
+WorkloadResult   4: 1 op, 704718100.00 ns, 704.7181 ms/op
+WorkloadResult   5: 1 op, 698691400.00 ns, 698.6914 ms/op
+WorkloadResult   6: 1 op, 698760300.00 ns, 698.7603 ms/op
+WorkloadResult   7: 1 op, 695623400.00 ns, 695.6234 ms/op
+WorkloadResult   8: 1 op, 696568100.00 ns, 696.5681 ms/op
+WorkloadResult   9: 1 op, 696828100.00 ns, 696.8281 ms/op
+WorkloadResult  10: 1 op, 703457700.00 ns, 703.4577 ms/op
+WorkloadResult  11: 1 op, 710751200.00 ns, 710.7512 ms/op
+WorkloadResult  12: 1 op, 702881700.00 ns, 702.8817 ms/op
+WorkloadResult  13: 1 op, 697718100.00 ns, 697.7181 ms/op
+WorkloadResult  14: 1 op, 694584800.00 ns, 694.5848 ms/op
+// GC:  0 0 0 2448 1
+// Threading:  0 0 1
+
+// AfterAll
+// Benchmark Process 34352 has exited with code 0.
+
+Mean = 701.131 ms, StdErr = 1.550 ms (0.22%), N = 14, StdDev = 5.799 ms
+Min = 694.585 ms, Q1 = 696.633 ms, Median = 698.726 ms, Q3 = 704.403 ms, Max = 712.355 ms
+IQR = 7.770 ms, LowerFence = 684.978 ms, UpperFence = 716.058 ms
+ConfidenceInterval = [694.589 ms; 707.672 ms] (CI 99.9%), Margin = 6.541 ms (0.93% of Mean)
+Skewness = 0.64, Kurtosis = 1.91, MValue = 2
+
+// ** Remained 12 (92,3 %) benchmark(s) to run. Estimated finish 2026-06-16 11:59 (0h 3m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: Höchstleistung)
+// **************************
+// Benchmark: BarcodeReaderBenchmarks.ReadByteArray: DefaultJob
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet e93666bf-d30c-4ccf-9e5f-57f7a8cf3423.dll --anonymousPipes 7128 7132 --benchmarkName BarcodeReaderBenchmarks.ReadByteArray --job Default --benchmarkId 1 in C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423\bin\Release\net8.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: DefaultJob
+
+OverheadJitting  1: 1 op, 246400.00 ns, 246.4000 us/op
+WorkloadJitting  1: 1 op, 712743300.00 ns, 712.7433 ms/op
+
+OverheadJitting  2: 1 op, 400.00 ns, 400.0000 ns/op
+WorkloadJitting  2: 1 op, 700564300.00 ns, 700.5643 ms/op
+
+WorkloadWarmup   1: 1 op, 691757900.00 ns, 691.7579 ms/op
+WorkloadWarmup   2: 1 op, 704867300.00 ns, 704.8673 ms/op
+WorkloadWarmup   3: 1 op, 690118300.00 ns, 690.1183 ms/op
+WorkloadWarmup   4: 1 op, 681761400.00 ns, 681.7614 ms/op
+WorkloadWarmup   5: 1 op, 695546300.00 ns, 695.5463 ms/op
+WorkloadWarmup   6: 1 op, 692593000.00 ns, 692.5930 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 1 op, 702090500.00 ns, 702.0905 ms/op
+WorkloadActual   2: 1 op, 691862200.00 ns, 691.8622 ms/op
+WorkloadActual   3: 1 op, 701050500.00 ns, 701.0505 ms/op
+WorkloadActual   4: 1 op, 691284200.00 ns, 691.2842 ms/op
+WorkloadActual   5: 1 op, 689678400.00 ns, 689.6784 ms/op
+WorkloadActual   6: 1 op, 690464000.00 ns, 690.4640 ms/op
+WorkloadActual   7: 1 op, 691474000.00 ns, 691.4740 ms/op
+WorkloadActual   8: 1 op, 695126400.00 ns, 695.1264 ms/op
+WorkloadActual   9: 1 op, 685037400.00 ns, 685.0374 ms/op
+WorkloadActual  10: 1 op, 681917200.00 ns, 681.9172 ms/op
+WorkloadActual  11: 1 op, 690166700.00 ns, 690.1667 ms/op
+WorkloadActual  12: 1 op, 683892900.00 ns, 683.8929 ms/op
+WorkloadActual  13: 1 op, 683144700.00 ns, 683.1447 ms/op
+WorkloadActual  14: 1 op, 684065400.00 ns, 684.0654 ms/op
+WorkloadActual  15: 1 op, 687794800.00 ns, 687.7948 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 1 op, 702090500.00 ns, 702.0905 ms/op
+WorkloadResult   2: 1 op, 691862200.00 ns, 691.8622 ms/op
+WorkloadResult   3: 1 op, 701050500.00 ns, 701.0505 ms/op
+WorkloadResult   4: 1 op, 691284200.00 ns, 691.2842 ms/op
+WorkloadResult   5: 1 op, 689678400.00 ns, 689.6784 ms/op
+WorkloadResult   6: 1 op, 690464000.00 ns, 690.4640 ms/op
+WorkloadResult   7: 1 op, 691474000.00 ns, 691.4740 ms/op
+WorkloadResult   8: 1 op, 695126400.00 ns, 695.1264 ms/op
+WorkloadResult   9: 1 op, 685037400.00 ns, 685.0374 ms/op
+WorkloadResult  10: 1 op, 681917200.00 ns, 681.9172 ms/op
+WorkloadResult  11: 1 op, 690166700.00 ns, 690.1667 ms/op
+WorkloadResult  12: 1 op, 683892900.00 ns, 683.8929 ms/op
+WorkloadResult  13: 1 op, 683144700.00 ns, 683.1447 ms/op
+WorkloadResult  14: 1 op, 684065400.00 ns, 684.0654 ms/op
+WorkloadResult  15: 1 op, 687794800.00 ns, 687.7948 ms/op
+// GC:  0 0 0 1992 1
+// Threading:  0 0 1
+
+// AfterAll
+// Benchmark Process 23032 has exited with code 0.
+
+Mean = 689.937 ms, StdErr = 1.568 ms (0.23%), N = 15, StdDev = 6.074 ms
+Min = 681.917 ms, Q1 = 684.551 ms, Median = 690.167 ms, Q3 = 691.668 ms, Max = 702.091 ms
+IQR = 7.117 ms, LowerFence = 673.876 ms, UpperFence = 702.343 ms
+ConfidenceInterval = [683.443 ms; 696.430 ms] (CI 99.9%), Margin = 6.493 ms (0.94% of Mean)
+Skewness = 0.58, Kurtosis = 2.31, MValue = 2
+
+// ** Remained 11 (84,6 %) benchmark(s) to run. Estimated finish 2026-06-16 11:59 (0h 3m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: Höchstleistung)
+// **************************
+// Benchmark: BarcodeReaderBenchmarks.ReadByteArrayAsyncWithDefensiveCopy: DefaultJob
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet e93666bf-d30c-4ccf-9e5f-57f7a8cf3423.dll --anonymousPipes 6680 1884 --benchmarkName BarcodeReaderBenchmarks.ReadByteArrayAsyncWithDefensiveCopy --job Default --benchmarkId 2 in C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423\bin\Release\net8.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: DefaultJob
+
+OverheadJitting  1: 1 op, 207100.00 ns, 207.1000 us/op
+WorkloadJitting  1: 1 op, 695193600.00 ns, 695.1936 ms/op
+
+OverheadJitting  2: 1 op, 200.00 ns, 200.0000 ns/op
+WorkloadJitting  2: 1 op, 707828100.00 ns, 707.8281 ms/op
+
+WorkloadWarmup   1: 1 op, 692273000.00 ns, 692.2730 ms/op
+WorkloadWarmup   2: 1 op, 695704600.00 ns, 695.7046 ms/op
+WorkloadWarmup   3: 1 op, 686978300.00 ns, 686.9783 ms/op
+WorkloadWarmup   4: 1 op, 706361800.00 ns, 706.3618 ms/op
+WorkloadWarmup   5: 1 op, 698103400.00 ns, 698.1034 ms/op
+WorkloadWarmup   6: 1 op, 686973200.00 ns, 686.9732 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 1 op, 690760400.00 ns, 690.7604 ms/op
+WorkloadActual   2: 1 op, 686155000.00 ns, 686.1550 ms/op
+WorkloadActual   3: 1 op, 700903600.00 ns, 700.9036 ms/op
+WorkloadActual   4: 1 op, 691628800.00 ns, 691.6288 ms/op
+WorkloadActual   5: 1 op, 686788600.00 ns, 686.7886 ms/op
+WorkloadActual   6: 1 op, 700477800.00 ns, 700.4778 ms/op
+WorkloadActual   7: 1 op, 696904300.00 ns, 696.9043 ms/op
+WorkloadActual   8: 1 op, 679885800.00 ns, 679.8858 ms/op
+WorkloadActual   9: 1 op, 697086700.00 ns, 697.0867 ms/op
+WorkloadActual  10: 1 op, 692877800.00 ns, 692.8778 ms/op
+WorkloadActual  11: 1 op, 709337800.00 ns, 709.3378 ms/op
+WorkloadActual  12: 1 op, 703866500.00 ns, 703.8665 ms/op
+WorkloadActual  13: 1 op, 687303900.00 ns, 687.3039 ms/op
+WorkloadActual  14: 1 op, 704720300.00 ns, 704.7203 ms/op
+WorkloadActual  15: 1 op, 689997600.00 ns, 689.9976 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 1 op, 690760400.00 ns, 690.7604 ms/op
+WorkloadResult   2: 1 op, 686155000.00 ns, 686.1550 ms/op
+WorkloadResult   3: 1 op, 700903600.00 ns, 700.9036 ms/op
+WorkloadResult   4: 1 op, 691628800.00 ns, 691.6288 ms/op
+WorkloadResult   5: 1 op, 686788600.00 ns, 686.7886 ms/op
+WorkloadResult   6: 1 op, 700477800.00 ns, 700.4778 ms/op
+WorkloadResult   7: 1 op, 696904300.00 ns, 696.9043 ms/op
+WorkloadResult   8: 1 op, 679885800.00 ns, 679.8858 ms/op
+WorkloadResult   9: 1 op, 697086700.00 ns, 697.0867 ms/op
+WorkloadResult  10: 1 op, 692877800.00 ns, 692.8778 ms/op
+WorkloadResult  11: 1 op, 709337800.00 ns, 709.3378 ms/op
+WorkloadResult  12: 1 op, 703866500.00 ns, 703.8665 ms/op
+WorkloadResult  13: 1 op, 687303900.00 ns, 687.3039 ms/op
+WorkloadResult  14: 1 op, 704720300.00 ns, 704.7203 ms/op
+WorkloadResult  15: 1 op, 689997600.00 ns, 689.9976 ms/op
+// GC:  0 0 0 138616 1
+// Threading:  1 0 1
+
+// AfterAll
+// Benchmark Process 9256 has exited with code 0.
+
+Mean = 694.580 ms, StdErr = 2.117 ms (0.30%), N = 15, StdDev = 8.199 ms
+Min = 679.886 ms, Q1 = 688.651 ms, Median = 692.878 ms, Q3 = 700.691 ms, Max = 709.338 ms
+IQR = 12.040 ms, LowerFence = 670.591 ms, UpperFence = 718.751 ms
+ConfidenceInterval = [685.815 ms; 703.345 ms] (CI 99.9%), Margin = 8.765 ms (1.26% of Mean)
+Skewness = 0.09, Kurtosis = 1.88, MValue = 2
+
+// ** Remained 10 (76,9 %) benchmark(s) to run. Estimated finish 2026-06-16 11:59 (0h 2m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: Höchstleistung)
+// **************************
+// Benchmark: BarcodeReaderBenchmarks.ReadByteArrayAsyncWithoutDefensiveCopy: DefaultJob
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet e93666bf-d30c-4ccf-9e5f-57f7a8cf3423.dll --anonymousPipes 1868 6652 --benchmarkName BarcodeReaderBenchmarks.ReadByteArrayAsyncWithoutDefensiveCopy --job Default --benchmarkId 3 in C:\Users\utku.AD.000\source\repos\QS-QualitySoft-GmbH\qs-barcode\sdk\dotnet\QualitySoft.Barcode.Benchmarks\bin\Release\net8.0\e93666bf-d30c-4ccf-9e5f-57f7a8cf3423\bin\Release\net8.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: DefaultJob
+
+OverheadJitting  1: 1 op, 212900.00 ns, 212.9000 us/op
+WorkloadJitting  1: 1 op, 699299900.00 ns, 699.2999 ms/op
+
+OverheadJitting  2: 1 op, 500.00 ns, 500.0000 ns/op
+WorkloadJitting  2: 1 op, 705142200.00 ns, 705.1422 ms/op
+
+WorkloadWarmup   1: 1 op, 691524100.00 ns, 691.5241 ms/op
+WorkloadWarmup   2: 1 op, 702156200.00 ns, 702.1562 ms/op
+WorkloadWarmup   3: 1 op, 690491000.00 ns, 690.4910 ms/op
+WorkloadWarmup   4: 1 op, 695730800.00 ns, 695.7308 ms/op
+WorkloadWarmup   5: 1 op, 699569700.00 ns, 699.5697 ms/op
+WorkloadWarmup   6: 1 op, 697789100.00 ns, 697.7891 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 1 op, 714585000.00 ns, 714.5850 ms/op
+WorkloadActual   2: 1 op, 723838100.00 ns, 723.8381 ms/op
+WorkloadActual   3: 1 op, 706687100.00 ns, 706.6871 ms/op
+WorkloadActual   4: 1 op, 707896900.00 ns, 707.8969 ms/op
+WorkloadActual   5: 1 op, 704858000.00 ns, 704.8580 ms/op
+WorkloadActual   6: 1 op, 704554500.00 ns, 704.5545 ms/op
+WorkloadActual   7: 1 op, 690311700.00 ns, 690.3117 ms/op
+WorkloadActual   8: 1 op, 700503500.00 ns, 700.5035 ms/op
+WorkloadActual   9: 1 op, 702232700.00 ns, 702.2327 ms/op
+WorkloadActual  10: 1 op, 696199000.00 ns, 696.1990 ms/op
+WorkloadActual  11: 1 op, 694598700.00 ns, 694.5987 ms/op
+WorkloadActual  12: 1 op, 804972400.00 ns, 804.9724 ms/op
+WorkloadActual  13: 1 op, 782515800.00 ns, 782.5158 ms/op
+WorkloadActual  14: 1 op, 787069500.00 ns, 787.0695 ms/op
+WorkloadActual  15: 1 op, 832775000.00 ns, 832.7750 ms/op
+WorkloadActual  16: 1 op, 854425700.00 ns, 854.4257 ms/op
+WorkloadActual  17: 1 op, 747528900.00 ns, 747.5289 ms/op
+WorkloadActual  18: 1 op, 758150300.00 ns, 758.1503 ms/op
+WorkloadActual  19: 1 op, 771359400.00 ns, 771.3594 ms/op
+WorkloadActual  20: 1 op, 739699900.00 ns, 739.6999 ms/op
+WorkloadActual  21: 1 op, 1005956300.00 ns, 1.0060 s/op
+WorkloadActual  22: 1 op, 836898900.00 ns, 836.8989 ms/op
+WorkloadActual  23: 1 op, 813808400.00 ns, 813.8084 ms/op
+WorkloadActual  24: 1 op, 816341400.00 ns, 816.3414 ms/op
+WorkloadActual  25: 1 op, 775532800.00 ns, 775.5328 ms/op
+WorkloadActual  26: 1 op, 777673600.00 ns, 777.6736 ms/op
+WorkloadActual  27: 1 op, 780310500.00 ns, 780.3105 ms/op
+WorkloadActual  28: 1 op, 822798600.00 ns, 822.7986 ms/op
+WorkloadActual  29: 1 op, 903338100.00 ns, 903.3381 ms/op
+WorkloadActual  30: 1 op, 985386100.00 ns, 985.3861 ms/op
+WorkloadActual  31: 1 op, 1053298500.00 ns, 1.0533 s/op
+WorkloadActual  32: 1 op, 1046974200.00 ns, 1.0470 s/op
+WorkloadActual  33: 1 op, 969607000.00 ns, 969.6070 ms/op
+WorkloadActual  34: 1 op, 912489700.00 ns, 912.4897 ms/op
+WorkloadActual  35: 1 op, 895084300.00 ns, 895.0843 ms/op
+WorkloadActual  36: 1 op, 1055769200.00 ns, 1.0558 s/op
+WorkloadActual  37: 1 op, 868307000.00 ns, 868.3070 ms/op
+WorkloadActual  38: 1 op, 972438100.00 ns, 972.4381 ms/op
+WorkloadActual  39: 1 op, 1114985700.00 ns, 1.1150 s/op
+WorkloadActual  40: 1 op, 1249475500.00 ns, 1.2495 s/op
+WorkloadActual  41: 1 op, 964959800.00 ns, 964.9598 ms/op
+WorkloadActual  42: 1 op, 954814300.00 ns, 954.8143 ms/op
+WorkloadActual  43: 1 op, 928966900.00 ns, 928.9669 ms/op
+WorkloadActual  44: 1 op, 1026214300.00 ns, 1.0262 s/op
+WorkloadActual  45: 1 op, 995776500.00 ns, 995.7765 ms/op
+WorkloadActual  46: 1 op, 927897900.00 ns, 927.8979 ms/op
+WorkloadActual  47: 1 op, 1041465200.00 ns, 1.0415 s/op
+WorkloadActual  48: 1 op, 1292953900.00 ns, 1.2930 s/op
+WorkloadActual  49: 1 op, 1282370800.00 ns, 1.2824 s/op
+WorkloadActual  50: 1 op, 1277341300.00 ns, 1.2773 s/op
+WorkloadActual  51: 1 op, 1068604900.00 ns, 1.0686 s/op
+WorkloadActual  52: 1 op, 931950600.00 ns, 931.9506 ms/op
+WorkloadActual  53: 1 op, 896493300.00 ns, 896.4933 ms/op
+WorkloadActual  54: 1 op, 989369600.00 ns, 989.3696 ms/op
+WorkloadActual  55: 1 op, 938563200.00 ns, 938.5632 ms/op
+WorkloadActual  56: 1 op, 983012400.00 ns, 983.0124 ms/op
+WorkloadActual  57: 1 op, 969161300.00 ns, 969.1613 ms/op
+WorkloadActual  58: 1 op, 1302861900.00 ns, 1.3029 s/op
+WorkloadActual  59: 1 op, 1226583100.00 ns, 1.2266 s/op
+WorkloadActual  60: 1 op, 864549400.00 ns, 864.5494 ms/op
+WorkloadActual  61: 1 op, 724086600.00 ns, 724.0866 ms/op
+WorkloadActual  62: 1 op, 709655500.00 ns, 709.6555 ms/op
+WorkloadActual  63: 1 op, 708512200.00 ns, 708.5122 ms/op
+WorkloadActual  64: 1 op, 692951100.00 ns, 692.9511 ms/op
+WorkloadActual  65: 1 op, 693209400.00 ns, 693.2094 ms/op
+WorkloadActual  66: 1 op, 695118600.00 ns, 695.1186 ms/op
+WorkloadActual  67: 1 op, 707969800.00 ns, 707.9698 ms/op
+WorkloadActual  68: 1 op, 708412500.00 ns, 708.412

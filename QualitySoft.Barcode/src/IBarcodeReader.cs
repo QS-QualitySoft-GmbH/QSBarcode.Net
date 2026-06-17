@@ -98,50 +98,52 @@ public interface IBarcodeReader
     IReadOnlyList<BarcodeResult> Read(Stream stream, BarcodeReaderOptions? options = null);
 
     /// <summary>
-    /// Reads barcodes from a file path on a dedicated native scan thread.
+    /// Reads barcodes from a file path asynchronously.
     /// </summary>
     Task<IReadOnlyList<BarcodeResult>> ReadAsync(string path, BarcodeReaderOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Reads barcodes from a file on a dedicated native scan thread.
+    /// Reads barcodes from a file asynchronously.
     /// </summary>
     Task<IReadOnlyList<BarcodeResult>> ReadAsync(FileInfo file, BarcodeReaderOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Reads barcodes from an encoded image or document in memory on a dedicated native scan thread.
+    /// Reads barcodes from an encoded image or document in memory asynchronously.
+    /// The caller must keep the byte array valid and unchanged until the returned task completes.
     /// </summary>
     Task<IReadOnlyList<BarcodeResult>> ReadAsync(byte[] bytes, BarcodeReaderOptions? options = null, CancellationToken cancellationToken = default);
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
     /// <summary>
-    /// Reads barcodes from an encoded image or document in memory on a dedicated native scan thread.
+    /// Reads barcodes from an encoded image or document in memory asynchronously.
     /// The caller must keep the memory valid and unchanged until the returned task completes.
     /// </summary>
     Task<IReadOnlyList<BarcodeResult>> ReadAsync(ReadOnlyMemory<byte> bytes, BarcodeReaderOptions? options = null, CancellationToken cancellationToken = default);
 #endif
 
     /// <summary>
-    /// Reads barcodes from an encoded image or document at an unmanaged memory address on a dedicated native scan thread.
+    /// Reads barcodes from an encoded image or document at an unmanaged memory address asynchronously.
     /// The caller must keep the memory valid and unchanged until the returned task completes.
     /// </summary>
     Task<IReadOnlyList<BarcodeResult>> ReadAsync(IntPtr bytes, int byteLength, BarcodeReaderOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Reads barcodes from a raw 8-bit grayscale image buffer on a dedicated native scan thread.
+    /// Reads barcodes from a raw 8-bit grayscale image buffer asynchronously.
+    /// The caller must keep the byte array valid and unchanged until the returned task completes.
     /// Stride zero means tightly packed rows with one byte per pixel.
     /// </summary>
     Task<IReadOnlyList<BarcodeResult>> ReadRawGray8Async(byte[] pixels, int width, int height, int stride = 0, BarcodeReaderOptions? options = null, CancellationToken cancellationToken = default);
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
     /// <summary>
-    /// Reads barcodes from a raw 8-bit grayscale image buffer on a dedicated native scan thread.
+    /// Reads barcodes from a raw 8-bit grayscale image buffer asynchronously.
     /// The caller must keep the memory valid and unchanged until the returned task completes.
     /// </summary>
     Task<IReadOnlyList<BarcodeResult>> ReadRawGray8Async(ReadOnlyMemory<byte> pixels, int width, int height, int stride = 0, BarcodeReaderOptions? options = null, CancellationToken cancellationToken = default);
 #endif
 
     /// <summary>
-    /// Reads barcodes from a raw 8-bit grayscale image buffer at an unmanaged memory address on a dedicated native scan thread.
+    /// Reads barcodes from a raw 8-bit grayscale image buffer at an unmanaged memory address asynchronously.
     /// The caller must keep the memory valid and unchanged until the returned task completes.
     /// </summary>
     Task<IReadOnlyList<BarcodeResult>> ReadRawGray8Async(IntPtr pixels, int width, int height, int stride = 0, BarcodeReaderOptions? options = null, CancellationToken cancellationToken = default);
@@ -228,13 +230,13 @@ public interface IBarcodeReader
 
     /// <summary>
     /// Renders a file page or frame through the native loader and returns 24-bit BMP bytes.
-    /// PDF input uses the native PDF render worker process when available.
+    /// PDF input is serialized through the native PDFium render thread.
     /// </summary>
     BarcodeRenderedImage RenderPage(string path, BarcodeReaderOptions? options = null);
 
     /// <summary>
     /// Renders a file page or frame through the native loader and returns 24-bit BMP bytes.
-    /// PDF input uses the native PDF render worker process when available.
+    /// PDF input is serialized through the native PDFium render thread.
     /// </summary>
     BarcodeRenderedImage RenderPage(FileInfo file, BarcodeReaderOptions? options = null);
 
@@ -293,14 +295,14 @@ public interface IBarcodeReader
     IReadOnlyList<BarcodeRenderedImage> RenderPagesGray8(string path, BarcodeReaderOptions? options = null);
 
     /// <summary>
-    /// Renders a file page or frame through the native loader on a dedicated native scan thread.
-    /// PDF input uses the native PDF render worker process when available.
+    /// Renders a file page or frame through the native loader asynchronously.
+    /// PDF input is serialized through the native PDFium render thread.
     /// </summary>
     Task<BarcodeRenderedImage> RenderPageAsync(string path, BarcodeReaderOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Renders a file page or frame through the native loader on a dedicated native scan thread.
-    /// PDF input uses the native PDF render worker process when available.
+    /// Renders a file page or frame through the native loader asynchronously.
+    /// PDF input is serialized through the native PDFium render thread.
     /// </summary>
     Task<BarcodeRenderedImage> RenderPageAsync(FileInfo file, BarcodeReaderOptions? options = null, CancellationToken cancellationToken = default);
 }

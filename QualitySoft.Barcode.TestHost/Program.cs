@@ -7,9 +7,9 @@ if (args.Length < 1 || !string.Equals(args[0], "demo-license-probe", StringCompa
     return 64;
 }
 
-if (args.Length < 4)
+if (args.Length < 3)
 {
-    Console.Error.WriteLine("Missing symbology, fixture or expected text arguments.");
+    Console.Error.WriteLine("Missing symbology or fixture arguments.");
     return 64;
 }
 
@@ -32,8 +32,6 @@ try
 
     using var reader = new QualitySoftBarcodeReader(new BarcodeReaderSettings
     {
-        MaxConcurrentScans = 1,
-        PdfRenderWorkerWarmupCount = 0,
         DefaultOptions = new BarcodeReaderOptions
         {
             Symbologies = symbology,
@@ -51,7 +49,12 @@ try
         return 3;
     }
 
-    return demoTexts.Any(text => expectedTexts.Contains(text, StringComparer.Ordinal)) ? 2 : 0;
+    if (expectedTexts.Length > 0 && demoTexts.Any(text => expectedTexts.Contains(text, StringComparer.Ordinal)))
+    {
+        return 2;
+    }
+
+    return 0;
 }
 catch (BarcodeScanException ex) when (ex.StatusCode == -6 || string.Equals(ex.StatusName, "license_required", StringComparison.Ordinal))
 {

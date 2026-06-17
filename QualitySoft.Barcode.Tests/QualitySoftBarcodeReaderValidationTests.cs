@@ -98,9 +98,6 @@ public sealed class QualitySoftBarcodeReaderValidationTests
 
     private static QualitySoftBarcodeReader CreateReader()
     {
-        return new QualitySoftBarcodeReader(new BarcodeReaderSettings
-        {
-            PdfRenderWorkerWarmupCount = 0
-        });
+        return new QualitySoftBarcodeReader(new BarcodeReaderSettings());
     }
 }
