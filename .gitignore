@@ -7,3 +7,4 @@ obj/
 native/*/
 !native/README.md
 artifacts/
+BenchmarkDotNet.Artifacts/
